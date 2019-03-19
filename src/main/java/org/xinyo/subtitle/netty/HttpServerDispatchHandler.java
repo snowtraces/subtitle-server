@@ -1,5 +1,6 @@
 package org.xinyo.subtitle.netty;
 
+import com.google.gson.Gson;
 import io.netty.handler.codec.http.FullHttpRequest;
 import org.xinyo.subtitle.netty.annotation.Param;
 import org.xinyo.subtitle.netty.init.ControllerInitializer;
@@ -15,7 +16,7 @@ import java.util.Map;
 
 public class HttpServerDispatchHandler {
     public static String dispatch(FullHttpRequest request) {
-        String result = "";
+        String result = null;
 
         HttpUtils.RequestParams params = HttpUtils.extractRequestParams(request);
 
@@ -32,7 +33,13 @@ public class HttpServerDispatchHandler {
 
                 Object[] methodParams = generateParams(parameters, params.getParams());
 
-                result = (String) method.invoke(SpringContextHolder.getBean(clazz), methodParams);
+                Object invoke = method.invoke(SpringContextHolder.getBean(clazz), methodParams);
+
+                if (invoke != null && !(invoke instanceof String)) {
+                    result = new Gson().toJson(invoke);
+                }
+            } else {
+                // TODO 404
             }
         } catch (Exception e) {
             e.printStackTrace();
