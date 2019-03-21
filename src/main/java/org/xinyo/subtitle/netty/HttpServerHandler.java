@@ -13,7 +13,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
         String result = HttpServerDispatchHandler.dispatch(msg);
 
-        ByteBuf content = Unpooled.copiedBuffer(result, CharsetUtil.UTF_8);
+        ByteBuf content = result == null ? null : Unpooled.copiedBuffer(result, CharsetUtil.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());

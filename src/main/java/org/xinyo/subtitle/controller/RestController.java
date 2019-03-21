@@ -7,10 +7,8 @@ import org.xinyo.subtitle.entity.Person;
 import org.xinyo.subtitle.netty.annotation.Param;
 import org.xinyo.subtitle.netty.annotation.Reference;
 import org.xinyo.subtitle.netty.annotation.RestMapping;
+import org.xinyo.subtitle.service.MovieService;
 import org.xinyo.subtitle.service.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class RestController {
@@ -19,23 +17,22 @@ public class RestController {
     @Autowired
     private Service service;
 
+    @Autowired
+    private MovieService movieService;
+
     @RestMapping("/data")
-    public Object data(@Param("name") String name, Person person){
+    public Object data(@Param("name") String name, Person person) {
         service.test(person);
         return person;
     }
 
     @RestMapping("/api/searchMovies")
-    public Object searchMovies(Movie movie){
-        List<Movie> list = new ArrayList<>();
-        list.add(movie);
-        return list;
+    public Object searchMovies(Movie movie) {
+        return movieService.listByKeyword(movie.getTitle());
     }
 
     @RestMapping("/api/listMovies")
-    public Object listMovies(Movie movie){
-        List<Movie> list = new ArrayList<>();
-        list.add(movie);
-        return list;
+    public Object listMovies(Movie movie) {
+        return movieService.listByKeyword(movie.getTitle());
     }
 }
