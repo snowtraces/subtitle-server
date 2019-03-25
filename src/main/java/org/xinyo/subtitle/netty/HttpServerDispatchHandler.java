@@ -55,7 +55,7 @@ public class HttpServerDispatchHandler {
         List<Object> paramList = new ArrayList<>();
         for (Parameter p : parameters) {
             Class<?> clazz = p.getType();
-            if (clazz.isPrimitive() || clazz.isArray()) {
+            if (clazz.equals(String.class) || clazz.isPrimitive() || clazz.isArray()) {
                 // 1. primitive / array
                 Param pName = p.getAnnotation(Param.class);
                 if (pName == null) {
@@ -65,7 +65,7 @@ public class HttpServerDispatchHandler {
                 String name = pName.value();
                 List<Object> objects = params.get(name);
                 if (objects != null && objects.size() > 0) {
-                    paramList.add(clazz.isPrimitive() ? objects.get(0) : objects.toArray());
+                    paramList.add((clazz.equals(String.class) || clazz.isPrimitive()) ? objects.get(0) : objects.toArray());
                 }
             } else {
                 // 2. java bean

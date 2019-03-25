@@ -16,7 +16,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         ByteBuf content = result == null ? null : Unpooled.copiedBuffer(result, CharsetUtil.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
-        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content == null ? null : content.readableBytes());
         response.content().writeBytes(content);
 
         ctx.writeAndFlush(response);
