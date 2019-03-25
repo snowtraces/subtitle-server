@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface MovieService {
     List<Movie> listByKeyword(String title);
+
+    Object getById(String id);
 }

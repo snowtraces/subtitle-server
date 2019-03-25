@@ -20,4 +20,9 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, Movie> implements
 
         return baseMapper.selectList(wrapper);
     }
+
+    @Override
+    public Object getById(String id) {
+        return super.getById(id);
+    }
 }

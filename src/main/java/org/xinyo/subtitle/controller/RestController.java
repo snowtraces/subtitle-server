@@ -35,4 +35,9 @@ public class RestController {
     public Object listMovies(Movie movie) {
         return movieService.listByKeyword(movie.getTitle());
     }
+
+    @RestMapping("/api/movie")
+    public Object getMovie(@Param("id")String id) {
+        return movieService.getById(id);
+    }
 }
