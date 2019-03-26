@@ -1,25 +1,32 @@
 package org.xinyo.subtitle.netty;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import com.google.common.io.Files;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
-import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.xinyo.subtitle.entity.SRTSubtitleUnit;
+import org.xinyo.subtitle.entity.UploadFile;
+import org.xinyo.subtitle.service.SubtitleService;
+import org.xinyo.subtitle.util.FileUtils;
 import org.xinyo.subtitle.util.HttpUtils;
+import org.xinyo.subtitle.util.SpringContextHolder;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.util.List;
 
 import static io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 
 @Slf4j
+@Component
 public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     public HttpUploadHandler() {
@@ -27,7 +34,6 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(true);
-    private static final String FILE_UPLOAD = "/data/";
     private static final String URI = "/api/fileUpload";
     private HttpPostRequestDecoder httpDecoder;
     HttpRequest request;
@@ -68,13 +74,27 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
             InterfaceHttpData data = httpDecoder.next();
             if (data != null && HttpDataType.FileUpload.equals(data.getHttpDataType())) {
                 final FileUpload fileUpload = (FileUpload) data;
-                final File file = new File(FILE_UPLOAD + fileUpload.getFilename());
+                UploadFile uploadFile = FileUtils.createFullPath(fileUpload.getFilename());
+                final File file = new File(uploadFile.getFullPath() + uploadFile.getFileName());
                 log.info("upload file: {}", file);
-                try (FileChannel inputChannel = new FileInputStream(fileUpload.getFile()).getChannel();
-                     FileChannel outputChannel = new FileOutputStream(file).getChannel()) {
+                try (
+                    FileChannel inputChannel = new FileInputStream(fileUpload.getFile()).getChannel();
+                    FileChannel outputChannel = new FileOutputStream(file).getChannel()
+                ) {
                     outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
 
-                    HttpUtils.response(ctx, HttpResponseStatus.OK);
+                    if (FileUtils.isAsciiText(file)) {
+                        List<String> lines = Files.readLines(file, Charset.forName("utf8"));
+                        if (FileUtils.isSubtitle(file)) {
+                            SubtitleService subtitleService = SpringContextHolder.getBean(SubtitleService.class);
+                            List<SRTSubtitleUnit> list = subtitleService.readSubtitle(lines);
+                            HttpUtils.response(ctx, list, HttpResponseStatus.OK);
+                        } else {
+                            HttpUtils.response(ctx, lines, HttpResponseStatus.OK);
+                        }
+                    } else {
+                        HttpUtils.response(ctx, HttpResponseStatus.OK);
+                    }
                 }
             }
         }

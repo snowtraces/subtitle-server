@@ -87,6 +87,14 @@ public class HttpUtils {
         ctx.writeAndFlush(response);
     }
 
+    public static void response(ChannelHandlerContext ctx, Object result, HttpResponseStatus status) {
+        if (result instanceof String) {
+            response(ctx, (String)result, status);
+        } else {
+            response(ctx, new Gson().toJson(result), status);
+        }
+    }
+
     public static void response(ChannelHandlerContext ctx, HttpResponseStatus status){
         response(ctx, "{\"result\":\"ok\"}", status);
     }

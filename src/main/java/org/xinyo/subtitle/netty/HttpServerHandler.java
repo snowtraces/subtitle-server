@@ -1,13 +1,12 @@
 package org.xinyo.subtitle.netty;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
+import io.netty.handler.codec.http.FullHttpRequest;
+import org.springframework.stereotype.Component;
 import org.xinyo.subtitle.util.HttpUtils;
 
+@Component
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     @Override
