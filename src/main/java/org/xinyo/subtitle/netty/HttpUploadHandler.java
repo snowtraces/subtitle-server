@@ -9,6 +9,7 @@ import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.xinyo.subtitle.util.HttpUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -73,13 +74,7 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
                      FileChannel outputChannel = new FileOutputStream(file).getChannel()) {
                     outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
 
-                    ByteBuf content = Unpooled.copiedBuffer("{\"result\":\"ok\"}", CharsetUtil.UTF_8);
-                    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-                    response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
-                    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content == null ? null : content.readableBytes());
-                    response.content().writeBytes(content);
-
-                    ctx.writeAndFlush(response);
+                    HttpUtils.response(ctx, HttpResponseStatus.OK);
                 }
             }
         }

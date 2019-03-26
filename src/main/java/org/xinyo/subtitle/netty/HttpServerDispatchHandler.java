@@ -2,6 +2,7 @@ package org.xinyo.subtitle.netty;
 
 import com.google.gson.Gson;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.xinyo.subtitle.netty.annotation.Param;
 import org.xinyo.subtitle.netty.init.ControllerInitializer;
 import org.xinyo.subtitle.util.HttpUtils;
@@ -15,8 +16,29 @@ import java.util.List;
 import java.util.Map;
 
 public class HttpServerDispatchHandler {
-    public static String dispatch(FullHttpRequest request) {
-        String result = null;
+    public static class Result{
+        private String data;
+        private HttpResponseStatus status;
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
+
+        public HttpResponseStatus getStatus() {
+            return status;
+        }
+
+        public void setStatus(HttpResponseStatus status) {
+            this.status = status;
+        }
+    }
+
+    public static Result dispatch(FullHttpRequest request) {
+        Result result = new Result();
 
         HttpUtils.RequestParams params = HttpUtils.extractRequestParams(request);
 
@@ -36,10 +58,12 @@ public class HttpServerDispatchHandler {
                 Object invoke = method.invoke(SpringContextHolder.getBean(clazz), methodParams);
 
                 if (invoke != null && !(invoke instanceof String)) {
-                    result = new Gson().toJson(invoke);
+                    String data = new Gson().toJson(invoke);
+                    result.setData(data);
+                    result.setStatus(HttpResponseStatus.OK);
                 }
             } else {
-                // TODO 404
+                result.setStatus(HttpResponseStatus.NOT_FOUND);
             }
         } catch (Exception e) {
             e.printStackTrace();

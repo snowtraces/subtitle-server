@@ -6,20 +6,15 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import org.xinyo.subtitle.util.HttpUtils;
 
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-        String result = HttpServerDispatchHandler.dispatch(msg);
+        HttpServerDispatchHandler.Result result = HttpServerDispatchHandler.dispatch(msg);
 
-        ByteBuf content = result == null ? null : Unpooled.copiedBuffer(result, CharsetUtil.UTF_8);
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
-        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content == null ? null : content.readableBytes());
-        response.content().writeBytes(content);
-
-        ctx.writeAndFlush(response);
+        HttpUtils.response(ctx, result);
     }
 
     @Override
