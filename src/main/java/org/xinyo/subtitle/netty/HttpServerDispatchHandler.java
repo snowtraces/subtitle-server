@@ -61,6 +61,8 @@ public class HttpServerDispatchHandler {
                     String data = new Gson().toJson(invoke);
                     result.setData(data);
                     result.setStatus(HttpResponseStatus.OK);
+                } else {
+                    result.setStatus(HttpResponseStatus.NOT_FOUND);
                 }
             } else {
                 result.setStatus(HttpResponseStatus.NOT_FOUND);
