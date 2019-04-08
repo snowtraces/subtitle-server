@@ -17,7 +17,7 @@ public class ControllerInitializer {
         return this;
     }
 
-    public ControllerInitializer add(List<Class> clazzs) {
+    ControllerInitializer add(List<Class> clazzs) {
         controllerList.addAll(clazzs);
         return this;
     }
@@ -26,7 +26,7 @@ public class ControllerInitializer {
         return mappingMap;
     }
 
-    public void init() {
+    void init() {
         if (controllerList.size() == 0) {
             // TODO warning log
             return;

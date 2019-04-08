@@ -3,6 +3,7 @@ package org.xinyo.subtitle.netty;
 import com.google.gson.Gson;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import lombok.Data;
 import org.xinyo.subtitle.netty.annotation.Param;
 import org.xinyo.subtitle.netty.init.ControllerInitializer;
 import org.xinyo.subtitle.util.HttpUtils;
@@ -16,28 +17,13 @@ import java.util.List;
 import java.util.Map;
 
 public class HttpServerDispatchHandler {
+    @Data
     public static class Result{
         private String data;
         private HttpResponseStatus status;
-
-        public String getData() {
-            return data;
-        }
-
-        public void setData(String data) {
-            this.data = data;
-        }
-
-        public HttpResponseStatus getStatus() {
-            return status;
-        }
-
-        public void setStatus(HttpResponseStatus status) {
-            this.status = status;
-        }
     }
 
-    public static Result dispatch(FullHttpRequest request) {
+    static Result dispatch(FullHttpRequest request) {
         Result result = new Result();
 
         HttpUtils.RequestParams params = HttpUtils.extractRequestParams(request);
@@ -143,9 +129,6 @@ public class HttpServerDispatchHandler {
 
     /**
      * 数字强制转型
-     * @param o
-     * @param fieldType
-     * @return
      */
     private static Object getNumberValue(Object o, Class<?> fieldType) {
         if (fieldType.equals(o.getClass())) {

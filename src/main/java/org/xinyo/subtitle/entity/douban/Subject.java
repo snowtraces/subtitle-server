@@ -68,8 +68,7 @@ public class Subject {
             return null;
         }
         String small = images.get("small"); // https://img3.doubanio.com/view/photo/s_ratio_poster/public/p2551118196.webp
-        String imgId = small.substring(small.lastIndexOf("/") + 1, small.lastIndexOf("."));
-        return imgId;
+        return small.substring(small.lastIndexOf("/") + 1, small.lastIndexOf("."));
     }
 
     private String extractGenres(SubjectVO subjectVO) {

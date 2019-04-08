@@ -17,10 +17,6 @@ public class DoubanSearchThread implements Runnable, Serializable {
 
     private SearchHistory searchHistory;
 
-    public DoubanSearchThread(){
-        this.douBanApiService = null;
-        this.searchHistoryService = null;
-    }
     public DoubanSearchThread(SearchHistory searchHistory) {
         this.searchHistory = searchHistory;
     }

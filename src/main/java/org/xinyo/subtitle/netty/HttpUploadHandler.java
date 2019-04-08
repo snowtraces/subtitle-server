@@ -36,7 +36,7 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(true);
     private static final String URI = "/api/fileUpload";
     private HttpPostRequestDecoder httpDecoder;
-    HttpRequest request;
+    private HttpRequest request;
 
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final HttpObject httpObject)
@@ -102,13 +102,13 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         log.warn("{}", cause);
         ctx.channel().close();
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) {
         if (httpDecoder != null) {
             httpDecoder.cleanFiles();
         }

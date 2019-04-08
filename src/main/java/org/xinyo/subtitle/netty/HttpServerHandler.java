@@ -10,14 +10,14 @@ import org.xinyo.subtitle.util.HttpUtils;
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) {
         HttpServerDispatchHandler.Result result = HttpServerDispatchHandler.dispatch(msg);
 
         HttpUtils.response(ctx, result);
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
     }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BaseInitializer {
-    List<Class> controllerList = new ArrayList<>();
+    private List<Class> controllerList = new ArrayList<>();
 
     public BaseInitializer addController(Class clazz) {
         controllerList.add(clazz);

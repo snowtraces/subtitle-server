@@ -11,8 +11,12 @@ import org.xinyo.subtitle.netty.HttpServer;
 @MapperScan("org.xinyo.subtitle.mapper")
 public class SubtitleServerApplication implements CommandLineRunner {
 
+    private final HttpServer httpServer;
+
     @Autowired
-    private HttpServer httpServer;
+    public SubtitleServerApplication(HttpServer httpServer) {
+        this.httpServer = httpServer;
+    }
 
     public static void main(String[] args) {
 //        new SpringApplicationBuilder(SubtitleServerApplication.class).web(WebApplicationType.NONE).run(args);

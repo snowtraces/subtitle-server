@@ -13,11 +13,15 @@ import java.util.List;
 @Component
 public class RestController {
 
-    @Autowired
-    private SubjectServcie subjectServcie;
+    private final SubjectServcie subjectServcie;
+
+    private final DouBanApiService douBanApiService;
 
     @Autowired
-    private DouBanApiService douBanApiService;
+    public RestController(SubjectServcie subjectServcie, DouBanApiService douBanApiService) {
+        this.subjectServcie = subjectServcie;
+        this.douBanApiService = douBanApiService;
+    }
 
     /**
      * 关键字搜索，search框提示
@@ -34,13 +38,11 @@ public class RestController {
      */
     @RestMapping("/api/listMovies")
     public Object listMovies(Subject subject) {
-        List<Subject> subjects = douBanApiService.searchByKeyword(subject.getTitle());
-        return subjects;
+        return douBanApiService.searchByKeyword(subject.getTitle());
     }
 
     @RestMapping("/api/movie")
     public Object getMovie(@Param("id")String id) {
-        Subject subject = subjectServcie.getById(id);
-        return subject;
+        return subjectServcie.getById(id);
     }
 }

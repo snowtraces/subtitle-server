@@ -16,7 +16,6 @@ import org.xinyo.subtitle.service.DouBanApiService;
 import org.xinyo.subtitle.service.SearchHistoryService;
 import org.xinyo.subtitle.util.RequestUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,22 +23,25 @@ import java.util.stream.Collectors;
 public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> implements DouBanApiService {
     private static final String SEARCH_URL = "http://api.douban.com/v2/movie/search?q=%s&start=%d&count=%d&apikey=0df993c66c0c636e29ecbb5344252a4a";
 
+    private final SearchHistoryService searchHistoryService;
+
     @Autowired
-    private SearchHistoryService searchHistoryService;
+    public DouBanApiServiceImpl(SearchHistoryService searchHistoryService) {
+        this.searchHistoryService = searchHistoryService;
+    }
 
     @Override
     public SearchResultVO search(String keyword, Integer start, Integer count) {
         String url = String.format(SEARCH_URL, keyword, start, count);
         String json = RequestUtils.requestText(url);
         Gson gson = new Gson();
-        SearchResultVO searchResult = gson.fromJson(json, SearchResultVO.class);
 
-        return searchResult;
+        return gson.fromJson(json, SearchResultVO.class);
     }
 
     @Override
     public List<Subject> searchByKeyword(String title) {
-        List<Subject> subjects = new ArrayList<>();
+        List<Subject> subjects;
 
         // 1. 判断是否存在本地数据
         boolean isSearched = searchHistoryService.isSearched(title);

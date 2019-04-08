@@ -1,6 +1,5 @@
 package org.xinyo.subtitle.task;
 
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -15,7 +14,7 @@ public class DoubanSearchThreadPool {
         return instance;
     }
 
-    public Future submitTask(Runnable task){
-        return executor.submit(task);
+    public void submitTask(Runnable task){
+        executor.submit(task);
     }
 }
