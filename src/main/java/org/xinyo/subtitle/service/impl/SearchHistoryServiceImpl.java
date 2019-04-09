@@ -7,7 +7,7 @@ import org.xinyo.subtitle.entity.douban.SearchHistory;
 import org.xinyo.subtitle.mapper.SearchHistoryMapper;
 import org.xinyo.subtitle.service.SearchHistoryService;
 import org.xinyo.subtitle.task.DoubanSearchThread;
-import org.xinyo.subtitle.task.DoubanSearchThreadPool;
+import org.xinyo.subtitle.task.DoubanApiThreadPool;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +26,7 @@ public class SearchHistoryServiceImpl extends ServiceImpl<SearchHistoryMapper, S
         super.save(searchHistory);
 
         // 2. 加入后台查询线程
-        DoubanSearchThreadPool.getInstance().submitTask(new DoubanSearchThread(searchHistory));
+        DoubanApiThreadPool.getInstance().submitTask(new DoubanSearchThread(searchHistory));
 
     }
 

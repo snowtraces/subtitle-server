@@ -15,6 +15,11 @@ public class FileUtils {
     private static String[] textSuffix = new String[]{"srt", "ass", "log", "text"};
     private static String[] subtitleSuffix = new String[]{"srt", "ass"};
 
+
+    public static String createPosterPath(){
+        return mkdirs(basePath, new String[]{"poster"});
+    }
+
     public static String[] generatePath() {
         String[] path = new String[4];
         LocalDateTime now = LocalDateTime.now();

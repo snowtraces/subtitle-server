@@ -14,14 +14,20 @@ import org.xinyo.subtitle.entity.douban.vo.SubjectVO;
 import org.xinyo.subtitle.mapper.SubjectMapper;
 import org.xinyo.subtitle.service.DouBanApiService;
 import org.xinyo.subtitle.service.SearchHistoryService;
+import org.xinyo.subtitle.task.DoubanApiThreadPool;
+import org.xinyo.subtitle.task.DoubanPosterThread;
 import org.xinyo.subtitle.util.RequestUtils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> implements DouBanApiService {
     private static final String SEARCH_URL = "http://api.douban.com/v2/movie/search?q=%s&start=%d&count=%d&apikey=0df993c66c0c636e29ecbb5344252a4a";
+    private static final String POSTER_URL = "http://img1.doubanio.com/view/photo/s_ratio_poster/public/%s.webp?apikey=0df993c66c0c636e29ecbb5344252a4a";
+    private static final String POSTER_URL_S = "https://img3.doubanio.com/view/subject/s/public/%s.webp?apikey=0df993c66c0c636e29ecbb5344252a4a";
 
     private final SearchHistoryService searchHistoryService;
 
@@ -32,6 +38,11 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
 
     @Override
     public SearchResultVO search(String keyword, Integer start, Integer count) {
+        try {
+            keyword = URLEncoder.encode(keyword, "utf8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         String url = String.format(SEARCH_URL, keyword, start, count);
         String json = RequestUtils.requestText(url);
         Gson gson = new Gson();
@@ -49,6 +60,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
             // a 查询本地
             QueryWrapper<Subject> wrapper = new QueryWrapper<>();
             wrapper.like("title", title)
+                    .or().like("original_title", title)
                     .or().like("casts", title)
                     .or().like("directors", title);
             wrapper.last("limit 10");
@@ -80,5 +92,12 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
         List<Subject> newList = subjectList.stream().filter(o -> super.getById(o.getId()) == null).collect(Collectors.toList());
         super.saveBatch(newList);
         return subjectList;
+    }
+
+    @Override
+    public void fetchPoster(String imgId) {
+        String url = imgId.startsWith("s") ? String.format(POSTER_URL_S, imgId) : String.format(POSTER_URL, imgId);
+
+        DoubanApiThreadPool.getInstance().submitTask(new DoubanPosterThread(url));
     }
 }

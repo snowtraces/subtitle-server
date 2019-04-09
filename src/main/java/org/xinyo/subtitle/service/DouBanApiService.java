@@ -1,7 +1,5 @@
 package org.xinyo.subtitle.service;
 
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.xinyo.subtitle.entity.douban.Subject;
 import org.xinyo.subtitle.entity.douban.vo.SearchResultVO;
 import org.xinyo.subtitle.entity.douban.vo.SubjectVO;
@@ -14,6 +12,7 @@ public interface DouBanApiService {
 
     List<Subject> searchByKeyword(String title);
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     List<Subject> save(List<SubjectVO> subjects);
+
+    void fetchPoster(String imgId);
 }

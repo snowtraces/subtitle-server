@@ -28,6 +28,19 @@ public class RequestUtils {
         }
     }
 
+    public static void fetchBinary(String url, String savePath) {
+        String fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
+        savePath += File.separator + fileName;
+
+        File file = new File(savePath);
+        try {
+            FileOutputStream outputStream = new FileOutputStream(file);
+            ByteStreams.copy(request(url), outputStream);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 请求
      * @return

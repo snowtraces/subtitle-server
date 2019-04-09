@@ -41,8 +41,16 @@ public class RestController {
         return douBanApiService.searchByKeyword(subject.getTitle());
     }
 
+    /**
+     * 根据id查询
+     */
     @RestMapping("/api/movie")
     public Object getMovie(@Param("id")String id) {
         return subjectServcie.getById(id);
+    }
+
+    @RestMapping("/api/listTopMovies")
+    public Object listTopMovies(){
+        return subjectServcie.getTop16();
     }
 }
