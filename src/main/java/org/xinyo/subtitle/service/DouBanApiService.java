@@ -14,5 +14,5 @@ public interface DouBanApiService {
 
     List<Subject> save(List<SubjectVO> subjects);
 
-    void fetchPoster(String imgId);
+    void fetchPoster(Subject imgId);
 }

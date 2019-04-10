@@ -13,7 +13,7 @@ public class DoubanSearchThread implements Runnable, Serializable {
     private SearchHistoryService searchHistoryService = SpringContextHolder.getBean(SearchHistoryService.class);
 
     private final static int count = 20;
-    private static int maxPage = 5;
+    private static int MAX_PAGE = 5;
 
     private SearchHistory searchHistory;
 
@@ -29,7 +29,7 @@ public class DoubanSearchThread implements Runnable, Serializable {
         }
 
         // 执行查询
-        maxPage = Math.min(maxPage, total / count + (total % count == 0 ? 0 : 1));
+        int maxPage = Math.min(MAX_PAGE, total / count + (total % count == 0 ? 0 : 1));
         String keyword = searchHistory.getKeyword();
         for (int i = 0; i < maxPage; i++) {
             SearchResultVO search = douBanApiService.search(keyword, i * count, count);

@@ -60,6 +60,7 @@ public class RequestUtils {
                 return is;
             } else {
                 System.err.println("Unexpected response status: " + status);
+                System.err.println(url);
                 return  null;
             }
 

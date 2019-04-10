@@ -16,7 +16,7 @@ public class FileUtils {
     private static String[] subtitleSuffix = new String[]{"srt", "ass"};
 
 
-    public static String createPosterPath(){
+    public static String createPosterPath(String basePath){
         return mkdirs(basePath, new String[]{"poster"});
     }
 

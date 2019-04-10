@@ -26,11 +26,11 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
     public List<Subject> getTop16() {
         // TODO 热门统计逻辑
         QueryWrapper<Subject> wrapper = new QueryWrapper<>();
-        wrapper.orderByDesc("year");
+        wrapper.orderByDesc("rating");
         wrapper.last("limit 16");
         List<Subject> list = super.list(wrapper);
 
-        list.forEach(s -> douBanApiService.fetchPoster(s.getImgId()));
+        list.forEach(s -> douBanApiService.fetchPoster(s));
 
         return list;
     }
