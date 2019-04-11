@@ -3,7 +3,9 @@ package org.xinyo.subtitle.task;
 import org.springframework.transaction.annotation.Transactional;
 import org.xinyo.subtitle.entity.douban.Subject;
 import org.xinyo.subtitle.entity.douban.UpdateLog;
+import org.xinyo.subtitle.entity.douban.vo.SubjectVO;
 import org.xinyo.subtitle.service.DouBanApiService;
+import org.xinyo.subtitle.service.SubjectServcie;
 import org.xinyo.subtitle.service.UpdateLogService;
 import org.xinyo.subtitle.util.SpringContextHolder;
 
@@ -11,40 +13,39 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 读取海报到本地
+ * 查询电影详情
  */
-public class DoubanPosterThread implements Runnable, Serializable {
+public class DoubanDetailThread implements Runnable, Serializable {
+
+
     private Subject subject;
-    private static final String DEFAULT_PREFIX = "default";
-
-    private DouBanApiService douBanApiService = SpringContextHolder.getBean(DouBanApiService.class);
     private UpdateLogService updateLogService = SpringContextHolder.getBean(UpdateLogService.class);
+    private DouBanApiService douBanApiService = SpringContextHolder.getBean(DouBanApiService.class);
+    private SubjectServcie subjectServcie = SpringContextHolder.getBean(SubjectServcie.class);
 
-    public DoubanPosterThread(Subject subject) {
+    public DoubanDetailThread(Subject subject) {
         this.subject = subject;
     }
 
     @Override
     @Transactional
     public void run() {
-        if (subject.getImgId().contains(DEFAULT_PREFIX)) {
-            return;
-        }
 
         // 1. 查询日志
         UpdateLog oldLog = updateLogService.getBySubjectId(subject.getId());
-        if (oldLog != null && oldLog.getPosterUpdateTime() != null) {
+        if (oldLog != null && oldLog.getBaseUpdateTime() != null) {
             return;
         }
 
-        // 2. 读取海报
-        boolean isSuccess = douBanApiService.fetchPoster(subject);
+        // 2. 读取详情
+        SubjectVO subjectVO = douBanApiService.searchDetail(subject);
+        boolean saveResult = subjectServcie.saveDetail(subjectVO);
 
         // 3. 写日志
-        if (isSuccess) {
+        if (saveResult) {
             UpdateLog log = new UpdateLog();
             log.setSubjectId(subject.getId());
-            log.setPosterUpdateTime(LocalDateTime.now());
+            log.setBaseUpdateTime(LocalDateTime.now());
             updateLogService.doLog(log);
         }
     }

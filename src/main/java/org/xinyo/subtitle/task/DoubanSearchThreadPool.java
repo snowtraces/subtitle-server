@@ -4,13 +4,13 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class DoubanApiThreadPool {
-    private static DoubanApiThreadPool instance = new DoubanApiThreadPool();
+public class DoubanSearchThreadPool {
+    private static DoubanSearchThreadPool instance = new DoubanSearchThreadPool();
     private static ThreadPoolExecutor executor =
-            new ThreadPoolExecutor(1, 2, 10, TimeUnit.MINUTES,
+            new ThreadPoolExecutor(1, 1, 10, TimeUnit.MINUTES,
                     new LinkedBlockingDeque<>(10000), new ThreadPoolExecutor.AbortPolicy());
 
-    public static DoubanApiThreadPool getInstance() {
+    public static DoubanSearchThreadPool getInstance() {
         return instance;
     }
 

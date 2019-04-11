@@ -10,9 +10,10 @@ public interface DouBanApiService {
 
     SearchResultVO search(String keyword, Integer start, Integer count);
 
+    SubjectVO searchDetail(Subject subject);
+
+    boolean fetchPoster(Subject subject);
+
     List<Subject> searchByKeyword(String title);
 
-    List<Subject> save(List<SubjectVO> subjects);
-
-    void fetchPoster(Subject imgId);
 }

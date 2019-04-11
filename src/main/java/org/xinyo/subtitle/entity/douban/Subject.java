@@ -20,6 +20,12 @@ public class Subject {
     private String originalTitle;
     private String subtype;
     private Integer year;
+    private String aka;
+    private String countries;
+
+    private Integer seasonsCount;
+    private String episodesCount;
+    private String currentSeason;
 
     private String imgId;
     private String genres;
@@ -28,7 +34,6 @@ public class Subject {
     private String casts;
     private String directors;
 
-    private String area;
     private String summary;
 
     public Subject(){}
@@ -38,10 +43,25 @@ public class Subject {
         this.year = Strings.isNullOrEmpty(subjectVO.getYear()) ? null : Integer.valueOf(subjectVO.getYear());
         this.originalTitle = subjectVO.getOriginal_title();
         this.imgId = extractImgId(subjectVO);
-        this.genres = extractGenres(subjectVO);
+        this.genres = extractStringList(subjectVO.getGenres());
         this.rating = extractRating(subjectVO);
         this.casts = extractPerson(subjectVO.getCasts());
         this.directors = extractPerson(subjectVO.getDirectors());
+
+        this.seasonsCount = subjectVO.getSeasons_count();
+        this.episodesCount = subjectVO.getEpisodes_count();
+        this.currentSeason = subjectVO.getCurrent_season();
+
+        this.aka = extractStringList(subjectVO.getAka());
+        this.countries = extractStringList(subjectVO.getCountries());
+
+        normalize();
+    }
+
+    private void normalize() {
+        if (!Strings.isNullOrEmpty(summary)) {
+            summary = summary.replace("©豆瓣", "");
+        }
     }
 
     private String extractPerson(PersonVO[] personVOS) {
@@ -71,12 +91,11 @@ public class Subject {
         return small.substring(small.lastIndexOf("/") + 1, small.lastIndexOf("."));
     }
 
-    private String extractGenres(SubjectVO subjectVO) {
-        String[] genres = subjectVO.getGenres();
-        if (genres == null) {
+    private String extractStringList(String[] source) {
+        if (source == null) {
             return null;
         } else {
-            return String.join("/", genres);
+            return String.join("/", source);
         }
     }
 

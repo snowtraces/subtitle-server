@@ -16,7 +16,7 @@ import java.io.*;
 
 public class RequestUtils {
     static CookieStore cookieStore = new BasicCookieStore();
-    public static String USER_AGENT_CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36";
+    public static String USER_AGENT_CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36";
 
     public static String requestText(String url) {
         InputStream inputStream = request(url);
@@ -28,7 +28,7 @@ public class RequestUtils {
         }
     }
 
-    public static void fetchBinary(String url, String savePath) {
+    public static boolean fetchBinary(String url, String savePath) {
         String fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
         savePath += File.separator + fileName;
 
@@ -38,7 +38,9 @@ public class RequestUtils {
             ByteStreams.copy(request(url), outputStream);
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 
     /**

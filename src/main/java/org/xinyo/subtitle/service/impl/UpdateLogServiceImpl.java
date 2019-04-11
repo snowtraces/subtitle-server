@@ -9,7 +9,7 @@ import org.xinyo.subtitle.service.UpdateLogService;
 public class UpdateLogServiceImpl extends ServiceImpl<UpdataLogMapper, UpdateLog> implements UpdateLogService {
     @Override
     public void doLog(UpdateLog log) {
-        super.save(log);
+        super.saveOrUpdate(log);
     }
 
     @Override

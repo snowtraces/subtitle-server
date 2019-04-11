@@ -11,6 +11,13 @@ public class SubjectVO {
     private String original_title;
     private String subtype;
     private String year;
+    private String[] aka;
+    private String[] countries;
+    private String summary;
+
+    private Integer seasons_count;
+    private String episodes_count;
+    private String current_season;
 
     private Map<String, String> images;
     private String[] genres;
