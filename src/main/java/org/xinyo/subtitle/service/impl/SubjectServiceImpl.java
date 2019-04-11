@@ -4,19 +4,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.xinyo.subtitle.entity.douban.Subject;
 import org.xinyo.subtitle.entity.douban.vo.SubjectVO;
 import org.xinyo.subtitle.mapper.SubjectMapper;
 import org.xinyo.subtitle.service.DouBanApiService;
-import org.xinyo.subtitle.service.SubjectServcie;
+import org.xinyo.subtitle.service.SubjectService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> implements SubjectServcie {
+public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> implements SubjectService {
 
     @Autowired
     private DouBanApiService douBanApiService;

@@ -5,7 +5,7 @@ import org.xinyo.subtitle.entity.douban.Subject;
 import org.xinyo.subtitle.entity.douban.UpdateLog;
 import org.xinyo.subtitle.entity.douban.vo.SubjectVO;
 import org.xinyo.subtitle.service.DouBanApiService;
-import org.xinyo.subtitle.service.SubjectServcie;
+import org.xinyo.subtitle.service.SubjectService;
 import org.xinyo.subtitle.service.UpdateLogService;
 import org.xinyo.subtitle.util.SpringContextHolder;
 
@@ -21,7 +21,7 @@ public class DoubanDetailThread implements Runnable, Serializable {
     private Subject subject;
     private UpdateLogService updateLogService = SpringContextHolder.getBean(UpdateLogService.class);
     private DouBanApiService douBanApiService = SpringContextHolder.getBean(DouBanApiService.class);
-    private SubjectServcie subjectServcie = SpringContextHolder.getBean(SubjectServcie.class);
+    private SubjectService subjectServcie = SpringContextHolder.getBean(SubjectService.class);
 
     public DoubanDetailThread(Subject subject) {
         this.subject = subject;

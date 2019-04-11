@@ -22,11 +22,7 @@ public class SearchHistoryServiceImpl extends ServiceImpl<SearchHistoryMapper, S
             return;
         }
 
-        // 1. 数据入库
         super.save(searchHistory);
-
-        // 2. 加入后台查询线程
-        DoubanSearchThreadPool.getInstance().submitTask(new DoubanSearchThread(searchHistory));
     }
 
     @Override

@@ -5,7 +5,7 @@ import org.xinyo.subtitle.entity.douban.vo.SubjectVO;
 
 import java.util.List;
 
-public interface SubjectServcie {
+public interface SubjectService {
     Subject getById(String id);
 
     List<Subject> getTop16();

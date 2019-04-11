@@ -6,19 +6,19 @@ import org.xinyo.subtitle.entity.douban.Subject;
 import org.xinyo.subtitle.netty.annotation.Param;
 import org.xinyo.subtitle.netty.annotation.RestMapping;
 import org.xinyo.subtitle.service.DouBanApiService;
-import org.xinyo.subtitle.service.SubjectServcie;
+import org.xinyo.subtitle.service.SubjectService;
 
 import java.util.List;
 
 @Component
 public class RestController {
 
-    private final SubjectServcie subjectServcie;
+    private final SubjectService subjectServcie;
 
     private final DouBanApiService douBanApiService;
 
     @Autowired
-    public RestController(SubjectServcie subjectServcie, DouBanApiService douBanApiService) {
+    public RestController(SubjectService subjectServcie, DouBanApiService douBanApiService) {
         this.subjectServcie = subjectServcie;
         this.douBanApiService = douBanApiService;
     }

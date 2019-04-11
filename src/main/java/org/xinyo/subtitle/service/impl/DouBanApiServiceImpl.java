@@ -12,6 +12,8 @@ import org.xinyo.subtitle.entity.douban.vo.SubjectVO;
 import org.xinyo.subtitle.mapper.SubjectMapper;
 import org.xinyo.subtitle.service.DouBanApiService;
 import org.xinyo.subtitle.service.SearchHistoryService;
+import org.xinyo.subtitle.task.DoubanSearchThread;
+import org.xinyo.subtitle.task.DoubanSearchThreadPool;
 import org.xinyo.subtitle.util.FileUtils;
 import org.xinyo.subtitle.util.RequestUtils;
 
@@ -94,11 +96,13 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
             SearchResultVO searchResult = search(title, 0, 10);
             
             if (searchResult != null) {
+                searchResult.setTitle(title);
                 List<SubjectVO> subjectVOs = searchResult.getSubjects();
                 if (subjectVOs != null && subjectVOs.size() > 0) {
                     subjects = subjectVOs.stream().map(Subject::new).collect(Collectors.toList());
                 }
                 searchHistoryService.add(new SearchHistory(title, searchResult.getTotal()));
+                DoubanSearchThreadPool.getInstance().submitTask(new DoubanSearchThread(searchResult));
             }
             System.out.println("DOUBAN");
         }
