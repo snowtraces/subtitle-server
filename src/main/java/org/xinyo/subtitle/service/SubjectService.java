@@ -8,8 +8,7 @@ import java.util.List;
 public interface SubjectService {
     Subject getById(String id);
 
-    List<Subject> getTop16();
-
+    List<Subject> getTopBySize(int size);
 
     boolean save(List<Subject> subjects);
 

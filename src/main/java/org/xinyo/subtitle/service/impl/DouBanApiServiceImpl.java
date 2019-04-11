@@ -14,6 +14,7 @@ import org.xinyo.subtitle.service.DouBanApiService;
 import org.xinyo.subtitle.service.SearchHistoryService;
 import org.xinyo.subtitle.task.DoubanSearchThread;
 import org.xinyo.subtitle.task.DoubanSearchThreadPool;
+import org.xinyo.subtitle.util.BloomFilterUtils;
 import org.xinyo.subtitle.util.FileUtils;
 import org.xinyo.subtitle.util.RequestUtils;
 
@@ -47,7 +48,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
         System.err.println("开始查询电影……");
         String url = String.format(SEARCH_URL, keyword, start, count);
         String json = RequestUtils.requestText(url);
-        return  new Gson().fromJson(json, SearchResultVO.class);
+        return new Gson().fromJson(json, SearchResultVO.class);
     }
 
     @Override
@@ -66,8 +67,10 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
         String url = imgId.startsWith("s") ? String.format(POSTER_URL_S, imgId) : String.format(POSTER_URL, imgId);
 
         System.err.println("开始读取海报……[" + subject.getTitle() + "]");
-        String bathPath = "/Users/CHENG/CODE/Projects/subtitle-angular/src/assets";
-        String path = FileUtils.createPosterPath(bathPath);
+        String bathPath = "/Users/CHENG/CODE/Projects/subtitle-angular/src/assets/poster";
+        List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
+
+        String path = FileUtils.createPosterPath(bathPath, idPath);
         boolean isSuccess = RequestUtils.fetchBinary(url, path);
 
         return isSuccess;
@@ -78,12 +81,13 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
         List<Subject> subjects = null;
 
         // 1. 判断是否存在本地数据
-        boolean isSearched = searchHistoryService.isSearched(title);
+        boolean isSearched = BloomFilterUtils.checkIsExist(title);
         if (isSearched) {
             // a 查询本地
             QueryWrapper<Subject> wrapper = new QueryWrapper<>();
             wrapper.like("title", title)
                     .or().like("original_title", title)
+                    .or().like("aka", title)
                     .or().like("casts", title)
                     .or().like("directors", title);
             wrapper.orderByDesc("rating");
@@ -92,9 +96,9 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
             searchHistoryService.timesIncr(title);
             System.out.println("LOCAL");
         } else {
+            BloomFilterUtils.push(title);
             // b 查豆瓣
             SearchResultVO searchResult = search(title, 0, 10);
-            
             if (searchResult != null) {
                 searchResult.setTitle(title);
                 List<SubjectVO> subjectVOs = searchResult.getSubjects();

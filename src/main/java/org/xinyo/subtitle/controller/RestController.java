@@ -29,7 +29,6 @@ public class RestController {
     @RestMapping("/api/searchMovies")
     public Object searchMovies(Subject subject) {
         List<Subject> subjects = douBanApiService.searchByKeyword(subject.getTitle());
-
         return subjects;
     }
 
@@ -51,6 +50,6 @@ public class RestController {
 
     @RestMapping("/api/listTopMovies")
     public Object listTopMovies(){
-        return subjectServcie.getTop16();
+        return subjectServcie.getTopBySize(24);
     }
 }

@@ -25,11 +25,11 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
     }
 
     @Override
-    public List<Subject> getTop16() {
+    public List<Subject> getTopBySize(int size) {
         // TODO 热门统计逻辑
         QueryWrapper<Subject> wrapper = new QueryWrapper<>();
         wrapper.orderByDesc("rating");
-        wrapper.last("limit 16");
+        wrapper.last("limit " + size);
         List<Subject> list = super.list(wrapper);
 
         return list;

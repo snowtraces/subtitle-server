@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.xinyo.subtitle.netty.HttpServer;
+import org.xinyo.subtitle.util.BloomFilterUtils;
 
 @SpringBootApplication
 @MapperScan("org.xinyo.subtitle.mapper")
@@ -25,6 +26,7 @@ public class SubtitleServerApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        BloomFilterUtils.initFilter();
         httpServer.start();
     }
 }

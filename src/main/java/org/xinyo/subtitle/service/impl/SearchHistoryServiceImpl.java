@@ -6,10 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.xinyo.subtitle.entity.douban.SearchHistory;
 import org.xinyo.subtitle.mapper.SearchHistoryMapper;
 import org.xinyo.subtitle.service.SearchHistoryService;
-import org.xinyo.subtitle.task.DoubanSearchThread;
-import org.xinyo.subtitle.task.DoubanSearchThreadPool;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class SearchHistoryServiceImpl extends ServiceImpl<SearchHistoryMapper, SearchHistory>
@@ -43,5 +42,10 @@ public class SearchHistoryServiceImpl extends ServiceImpl<SearchHistoryMapper, S
     @Override
     public void timesIncr(String keyword) {
         baseMapper.timesIncr(keyword);
+    }
+
+    @Override
+    public List<SearchHistory> listAll() {
+        return super.list();
     }
 }

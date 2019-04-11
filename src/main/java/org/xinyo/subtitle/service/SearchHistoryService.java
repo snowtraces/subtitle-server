@@ -2,6 +2,8 @@ package org.xinyo.subtitle.service;
 
 import org.xinyo.subtitle.entity.douban.SearchHistory;
 
+import java.util.List;
+
 public interface SearchHistoryService {
     void add(SearchHistory searchHistory);
 
@@ -10,4 +12,6 @@ public interface SearchHistoryService {
     boolean isSearched(String keyword);
 
     void timesIncr(String keyword);
+
+    List<SearchHistory> listAll();
 }

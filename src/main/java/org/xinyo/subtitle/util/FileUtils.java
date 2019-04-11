@@ -8,7 +8,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class FileUtils {
     private static String basePath = "/data/";
@@ -16,11 +18,11 @@ public class FileUtils {
     private static String[] subtitleSuffix = new String[]{"srt", "ass"};
 
 
-    public static String createPosterPath(String basePath){
-        return mkdirs(basePath, new String[]{"poster"});
+    public static String createPosterPath(String basePath, List<String> idPath){
+        return mkdirs(basePath, idPath);
     }
 
-    public static String[] generatePath() {
+    public static List<String> generatePath() {
         String[] path = new String[4];
         LocalDateTime now = LocalDateTime.now();
 
@@ -29,10 +31,10 @@ public class FileUtils {
         path[2] = String.valueOf(now.getDayOfMonth());
         path[3] = String.valueOf(now.getSecond() % 10);
 
-        return path;
+        return Arrays.asList(path);
     }
 
-    public static String mkdirs(String basePath, String[] path) {
+    public static String mkdirs(String basePath, List<String> path) {
         if (basePath.endsWith("/")) {
             basePath = basePath.substring(0, basePath.length() - 1);
         }
@@ -49,7 +51,7 @@ public class FileUtils {
     }
 
     public static UploadFile createFullPath(String basePath, String fileName) {
-        String[] path = generatePath();
+        List<String> path = generatePath();
         String filePath = mkdirs(basePath, path);
 
         Long id = SnowFlake.getId();
@@ -109,5 +111,27 @@ public class FileUtils {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 分割字符串
+     * @param in 输入
+     * @param len 分割长度
+     * @param steps 步数
+     */
+    public static List<String> separateString(String in, int len, int steps ) {
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < steps; i++) {
+            list.add(in.substring(i * len, (i + 1) * len));
+        }
+
+        return list;
+    }
+
+    public static void main(String[] args) {
+        String s = "ABC123XYZ99999";
+        List<String> strings = separateString(s, 3, 3);
+
+        System.err.println(strings);
     }
 }
