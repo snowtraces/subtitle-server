@@ -41,6 +41,7 @@ public class Subject {
     public Subject(SubjectVO subjectVO){
         BeanUtils.copyProperties(subjectVO, this);
 
+        this.title = subjectVO.getTitle().replaceAll(" {2,}", " ");
         this.year = Strings.isNullOrEmpty(subjectVO.getYear()) ? null : Integer.valueOf(subjectVO.getYear());
         this.originalTitle = subjectVO.getOriginal_title();
         this.imgId = extractImgId(subjectVO);

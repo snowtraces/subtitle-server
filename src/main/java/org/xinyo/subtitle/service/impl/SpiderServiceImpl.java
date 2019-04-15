@@ -39,7 +39,7 @@ public class SpiderServiceImpl implements SpiderService {
         }
         String movieText = RequestUtils.requestText(searchPath);
 
-        Matcher matcher = Pattern.compile("<h4><a href=\"/ar0/(\\d+)\"").matcher(movieText);
+        Matcher matcher = Pattern.compile("=\"d_title\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
         List<String> subList = new ArrayList<>();
         while (matcher.find()) {
             System.err.println(matcher.group());
