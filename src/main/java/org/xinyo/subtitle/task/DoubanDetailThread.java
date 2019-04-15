@@ -21,7 +21,7 @@ public class DoubanDetailThread implements Runnable, Serializable {
     private Subject subject;
     private UpdateLogService updateLogService = SpringContextHolder.getBean(UpdateLogService.class);
     private DouBanApiService douBanApiService = SpringContextHolder.getBean(DouBanApiService.class);
-    private SubjectService subjectServcie = SpringContextHolder.getBean(SubjectService.class);
+    private SubjectService subjectService = SpringContextHolder.getBean(SubjectService.class);
 
     public DoubanDetailThread(Subject subject) {
         this.subject = subject;
@@ -39,7 +39,7 @@ public class DoubanDetailThread implements Runnable, Serializable {
 
         // 2. 读取详情
         SubjectVO subjectVO = douBanApiService.searchDetail(subject);
-        boolean saveResult = subjectServcie.saveDetail(subjectVO);
+        boolean saveResult = subjectService.saveDetail(subjectVO);
 
         // 3. 写日志
         if (saveResult) {

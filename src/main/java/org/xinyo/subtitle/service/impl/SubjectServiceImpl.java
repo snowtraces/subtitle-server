@@ -10,6 +10,8 @@ import org.xinyo.subtitle.entity.douban.vo.SubjectVO;
 import org.xinyo.subtitle.mapper.SubjectMapper;
 import org.xinyo.subtitle.service.DouBanApiService;
 import org.xinyo.subtitle.service.SubjectService;
+import org.xinyo.subtitle.task.SubtitleSpiderThread;
+import org.xinyo.subtitle.task.SubtitleSpiderThreadPool;
 
 import java.util.List;
 
@@ -21,7 +23,9 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
 
     @Override
     public Subject getById(String id) {
-        return super.getById(id);
+        Subject byId = super.getById(id);
+        SubtitleSpiderThreadPool.getInstance().submitTask(new SubtitleSpiderThread(byId));
+        return byId;
     }
 
     @Override

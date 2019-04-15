@@ -19,6 +19,8 @@ public class SubjectVO {
     private String episodes_count;
     private String current_season;
 
+    private Integer ratings_count;
+
     private Map<String, String> images;
     private String[] genres;
     private Map<String, Object> rating;

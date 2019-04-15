@@ -26,6 +26,7 @@ public class Subject {
     private Integer seasonsCount;
     private String episodesCount;
     private String currentSeason;
+    private Integer ratingsCount;
 
     private String imgId;
     private String genres;
@@ -51,6 +52,7 @@ public class Subject {
         this.seasonsCount = subjectVO.getSeasons_count();
         this.episodesCount = subjectVO.getEpisodes_count();
         this.currentSeason = subjectVO.getCurrent_season();
+        this.ratingsCount = subjectVO.getRatings_count();
 
         this.aka = extractStringList(subjectVO.getAka());
         this.countries = extractStringList(subjectVO.getCountries());
