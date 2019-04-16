@@ -3,7 +3,6 @@ package org.xinyo.subtitle.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.xinyo.subtitle.entity.SRTSubtitleUnit;
 import org.xinyo.subtitle.entity.Subtitle;
@@ -69,6 +68,14 @@ public class SubtitleServiceImpl extends ServiceImpl<SubtitleMapper, Subtitle> i
     public List<Subtitle> getBySubjectId(String id) {
         QueryWrapper<Subtitle> wrapper = new QueryWrapper<>();
         wrapper.eq("subject_id", id);
+        return super.list(wrapper);
+    }
+
+    @Override
+    public List<Subtitle> listBySubjectId(String id) {
+        QueryWrapper<Subtitle> wrapper = new QueryWrapper<>();
+        wrapper.eq("subject_id", id);
+
         return super.list(wrapper);
     }
 

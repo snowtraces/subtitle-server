@@ -27,6 +27,10 @@ public class Subtitle {
     private LocalDateTime createTime;
     private String remark;
 
+    private String source; // 来源
+    private String currentEpisode;
+    private String currentSeason;
+
     public Subtitle(){}
     public Subtitle(SubtitleVO subtitleVO) {
         BeanUtils.copyProperties(subtitleVO, this);
@@ -61,7 +65,7 @@ public class Subtitle {
         List<String> collect = Arrays.stream(split)
                 .map(String::trim)
                 .filter(s -> !Strings.isNullOrEmpty(s))
-                .map(s -> s.replaceAll("[体文]", ""))
+                .map(s -> s.replaceAll("[体文本国]", ""))
                 .collect(Collectors.toList());
 
         int[] lang = new int[10];

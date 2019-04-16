@@ -2,25 +2,32 @@ package org.xinyo.subtitle.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.xinyo.subtitle.entity.Subtitle;
 import org.xinyo.subtitle.entity.douban.Subject;
 import org.xinyo.subtitle.netty.annotation.Param;
 import org.xinyo.subtitle.netty.annotation.RestMapping;
 import org.xinyo.subtitle.service.DouBanApiService;
 import org.xinyo.subtitle.service.SubjectService;
+import org.xinyo.subtitle.service.SubtitleService;
 
 import java.util.List;
 
 @Component
 public class RestController {
 
-    private final SubjectService subjectServcie;
-
+    private final SubjectService subjectService;
     private final DouBanApiService douBanApiService;
+    private final SubtitleService subtitleService;
 
     @Autowired
-    public RestController(SubjectService subjectServcie, DouBanApiService douBanApiService) {
-        this.subjectServcie = subjectServcie;
+    public RestController(
+            SubjectService subjectService,
+            DouBanApiService douBanApiService,
+            SubtitleService subtitleService
+    ) {
+        this.subjectService = subjectService;
         this.douBanApiService = douBanApiService;
+        this.subtitleService = subtitleService;
     }
 
     /**
@@ -45,11 +52,17 @@ public class RestController {
      */
     @RestMapping("/api/movie")
     public Object getMovie(@Param("id")String id) {
-        return subjectServcie.getById(id);
+        return subjectService.getById(id);
     }
 
     @RestMapping("/api/listTopMovies")
     public Object listTopMovies(){
-        return subjectServcie.getTopBySize(24);
+        return subjectService.getTopBySize(24);
+    }
+
+    @RestMapping("/api/listSubtitles")
+    public Object listSubtitles(@Param("id")String id) {
+        List<Subtitle> list = subtitleService.listBySubjectId(id);
+        return list;
     }
 }

@@ -1,6 +1,7 @@
 package org.xinyo.subtitle.service.impl;
 
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.xinyo.subtitle.entity.Subtitle;
@@ -14,6 +15,7 @@ import org.xinyo.subtitle.util.RequestUtils;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class SpiderServiceImpl implements SpiderService {
     private static final String SUBTITLE_SEARCH_PATH = "http://subhd.com/search0/%s";
     private static final String SUBTITLE_PATH = "http://subhd.com/ar0/%s";
+    private static final String MOVIE_PATH = "http://subhd.com/do0/%s";
 
     @Autowired
     private SubtitleService subtitleService;
@@ -31,34 +34,39 @@ public class SpiderServiceImpl implements SpiderService {
     public void doCrawl(Subject subject) {
 
         // 1. 搜索字幕
-        String searchPath = null;
-        try {
-            searchPath = String.format(SUBTITLE_SEARCH_PATH, URLEncoder.encode(subject.getTitle(), "utf8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        String movieText = RequestUtils.requestText(searchPath);
 
-        Matcher matcher = Pattern.compile("=\"d_title\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
-        List<String> subList = new ArrayList<>();
-        while (matcher.find()) {
-            System.err.println(matcher.group());
-            subList.add(matcher.group(1));
-        }
-        subList = subList.stream().distinct().collect(Collectors.toList());
+        List<String> subList = getSubList(subject);
         if (subList.size() == 0) {
             return;
         }
 
-        // 2. 请求字幕页面
-        List<SubtitleVO> list = new ArrayList<>();
         for (String subtitleId : subList) {
+            // 2. 请求字幕页面
             String subPath = String.format(SUBTITLE_PATH, subtitleId);
             String subText = RequestUtils.requestText(subPath);
 
+            if (Strings.isNullOrEmpty(subText)) {
+                subText = RequestUtils.requestText(subPath);
+                if (Strings.isNullOrEmpty(subText)) {
+                    continue;
+                }
+            }
+
             SubtitleVO subtitleVO = new SubtitleVO();
             subtitleVO.setId(subtitleId);
-            subtitleVO.setTitle(subject.getTitle());
+
+            String title = extraAttr(subText, "<h2><div[^<]*</div>", "</h2>");
+            if (Strings.isNullOrEmpty(title)) {
+                title = extraAttr(subText, "<h1><div[^<]*</div>", "</h1>");
+            }
+            if (Strings.isNullOrEmpty(title)) {
+                title = null;
+            }
+            subtitleVO.setTitle(title);
+            subtitleVO.setSource("subhd");
+            subtitleVO.setCurrentSeason(extraAttr(subText, "<div class=\"tvlabel\">S", "E\\d+</div>"));
+            subtitleVO.setCurrentEpisode(extraAttr(subText, "<div class=\"tvlabel\">S\\d+E", "</div>"));
+
             subtitleVO.setSubjectId(subject.getId());
             subtitleVO.setToken(extraAttr(subText, "dtoken=\"", "\""));
 
@@ -72,12 +80,8 @@ public class SpiderServiceImpl implements SpiderService {
             }
 
             System.err.println(subtitleVO);
-            list.add(subtitleVO);
-            break;
-        }
 
         // 3. 请求字幕地址
-        for (SubtitleVO subtitleVO : list) {
             String token = subtitleVO.getToken();
             String id = subtitleVO.getId();
 
@@ -93,28 +97,96 @@ public class SpiderServiceImpl implements SpiderService {
 
             String s = RequestUtils.requestText(url, params, headers); // {"success":true,"url":"http:\/\/dl1.subhd.com\/sub\/2016\/05\/146418042012852.zip"}
 
-            String downloadPath = s.replaceAll("^.*\"url\":\"([^\"]+)\"}$", "$1").replaceAll("\\\\", "");
+            if (Strings.isNullOrEmpty(s)) {
+                // 自动重试一次
+                s = RequestUtils.requestText(url, params, headers);
+                if (Strings.isNullOrEmpty(s)) {
+                    continue;
+                }
+            }
+
+            HashMap<String, String> downloadMap = new Gson().fromJson(s, HashMap.class);
+            String downloadPath = downloadMap.get("url");
 
             System.err.println("下载地址：" + downloadPath);
 
-            if (Strings.isNullOrEmpty(s)) {
-                return;
-            }
 
             // 4. 下载保存文件
             String bathPath = "/Users/CHENG/CODE/Projects/subtitle-angular/src/assets/subtitles";
             List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
 
             String path = FileUtils.createPosterPath(bathPath, idPath);
-            RequestUtils.fetchBinary(downloadPath, path);
+            boolean isDownload = RequestUtils.fetchBinary(downloadPath, path);
+            if (!isDownload) {
+                isDownload = RequestUtils.fetchBinary(downloadPath, path);
+                if (!isDownload) {
+                    System.err.println("字幕下载失败……");
+                    continue;
+                }
+            }
 
             // 5. 入库
             Subtitle subtitle = new Subtitle(subtitleVO);
             String fileName = downloadPath.substring(downloadPath.lastIndexOf("/") + 1);
+            try {
+                fileName = URLEncoder.encode(fileName, "utf8").replaceAll("\\+", "%20");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
             subtitle.setFileName(fileName);
 
             subtitleService.add(subtitle);
         }
+    }
+
+    /**
+     * 查询字幕id列表
+     */
+    private List<String> getSubList(Subject subject) {
+        List<String> subList = new ArrayList<>();
+
+        // 1. 直接访问
+        String moviePath = String.format(MOVIE_PATH, subject.getId());
+        String movieText = RequestUtils.requestText(moviePath);
+
+        if (!Strings.isNullOrEmpty(movieText)) {
+            Matcher matcher = Pattern.compile("=\"dt_edition\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
+            while (matcher.find()) {
+                System.err.println(matcher.group());
+                subList.add(matcher.group(1));
+            }
+        }
+
+        if (subList.size() < 5) {
+            // 2. 添加搜索数据
+            String searchPath = null;
+            String keyword = subject.getTitle().length() < 5
+                    ? (subject.getTitle() + " " + subject.getYear()) : subject.getTitle();
+            try {
+                searchPath = String.format(SUBTITLE_SEARCH_PATH,
+                        URLEncoder.encode(keyword, "utf8").replaceAll("\\+", "%20"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            movieText = RequestUtils.requestText(searchPath);
+
+            if (Strings.isNullOrEmpty(movieText)) {
+                movieText = RequestUtils.requestText(searchPath);
+                if (Strings.isNullOrEmpty(movieText)) {
+                    return subList;
+                }
+            }
+
+            Matcher matcher = Pattern.compile("=\"d_title\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
+            while (matcher.find()) {
+                System.err.println(matcher.group());
+                subList.add(matcher.group(1));
+            }
+        }
+
+        // 3. 去重
+        subList = subList.stream().distinct().collect(Collectors.toList());
+        return subList;
     }
 
     private String extraAttr(String source, String start, String end) {

@@ -2,29 +2,32 @@ package org.xinyo.subtitle.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.xinyo.subtitle.entity.douban.Subject;
 import org.xinyo.subtitle.entity.douban.vo.SubjectVO;
 import org.xinyo.subtitle.mapper.SubjectMapper;
-import org.xinyo.subtitle.service.DouBanApiService;
 import org.xinyo.subtitle.service.SubjectService;
 import org.xinyo.subtitle.task.SubtitleSpiderThread;
 import org.xinyo.subtitle.task.SubtitleSpiderThreadPool;
+import org.xinyo.subtitle.util.BloomFilterUtils;
 
 import java.util.List;
 
 @Service
 public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> implements SubjectService {
 
-    @Autowired
-    private DouBanApiService douBanApiService;
-
     @Override
     public Subject getById(String id) {
         Subject byId = super.getById(id);
-        SubtitleSpiderThreadPool.getInstance().submitTask(new SubtitleSpiderThread(byId));
+
+        // 下载字幕
+        boolean mightContainSubtitle = BloomFilterUtils.mightContainSubtitle(id);
+        if (!mightContainSubtitle) {
+            BloomFilterUtils.pushSubtitle(id);
+            SubtitleSpiderThreadPool.getInstance().submitTask(new SubtitleSpiderThread(byId));
+        }
+
         return byId;
     }
 

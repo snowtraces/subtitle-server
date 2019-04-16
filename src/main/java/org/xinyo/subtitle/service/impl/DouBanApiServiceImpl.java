@@ -81,7 +81,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
         List<Subject> subjects = null;
 
         // 1. 判断是否存在本地数据
-        boolean isSearched = BloomFilterUtils.checkIsExist(title);
+        boolean isSearched = BloomFilterUtils.mightContainSearch(title);
         if (isSearched) {
             // a 查询本地
             QueryWrapper<Subject> wrapper = new QueryWrapper<>();
@@ -96,7 +96,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
             searchHistoryService.timesIncr(title);
             System.out.println("LOCAL");
         } else {
-            BloomFilterUtils.push(title);
+            BloomFilterUtils.pushSearch(title);
             // b 查豆瓣
             SearchResultVO searchResult = search(title, 0, 10);
             if (searchResult != null) {

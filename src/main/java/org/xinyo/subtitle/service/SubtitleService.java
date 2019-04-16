@@ -13,4 +13,6 @@ public interface SubtitleService {
     boolean add(Subtitle subtitle);
 
     List<Subtitle> getBySubjectId(String id);
+
+    List<Subtitle> listBySubjectId(String id);
 }

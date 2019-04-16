@@ -2,9 +2,7 @@ package org.xinyo.subtitle.util;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
@@ -18,12 +16,10 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicHeader;
 
 import java.io.*;
-import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.List;
-import java.util.Map;
 
 public class RequestUtils {
     static CookieStore cookieStore = new BasicCookieStore();
@@ -31,16 +27,18 @@ public class RequestUtils {
 
     public static String requestText(String url) {
         InputStream inputStream = request(url);
-        try {
-            return CharStreams.toString(new InputStreamReader(inputStream, "utf-8"));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return stream2Text(inputStream);
     }
 
     public static String requestText(String url, List<String> params, List<String> headers) {
         InputStream inputStream = requestPost(url, params, headers);
+        return stream2Text(inputStream);
+    }
+
+    private static String stream2Text(InputStream inputStream) {
+        if (inputStream == null) {
+            return null;
+        }
         try {
             return CharStreams.toString(new InputStreamReader(inputStream, "utf-8"));
         } catch (IOException e) {
@@ -50,16 +48,21 @@ public class RequestUtils {
     }
 
     public static boolean fetchBinary(String url, String savePath) {
-        String fileName;
-        if (url.contains("?")) {
-            fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
-        } else {
-            fileName = url.substring(url.lastIndexOf("/") + 1);
-        }
-        savePath += File.separator + fileName;
-
-        File file = new File(savePath);
         try {
+            url = url.substring(0, url.lastIndexOf("/") + 1)
+                    + URLEncoder.encode(url.substring(url.lastIndexOf("/") + 1), "utf8")
+                    .replaceAll("\\+", "%20")
+                    .replaceAll("%3F", "?");
+
+            String fileName;
+            if (url.contains("?")) {
+                fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
+            } else {
+                fileName = url.substring(url.lastIndexOf("/") + 1);
+            }
+
+            savePath += File.separator + fileName;
+            File file = new File(savePath);
             FileOutputStream outputStream = new FileOutputStream(file);
             ByteStreams.copy(request(url), outputStream);
         } catch (Exception e) {
@@ -71,14 +74,14 @@ public class RequestUtils {
 
     /**
      * 请求
+     *
      * @return
      */
     public static InputStream request(String url) {
         CloseableHttpClient httpClient = getHttpClient();
-
-        HttpGet httpget = new HttpGet(url);
         CloseableHttpResponse response = null;
         try {
+            HttpGet httpget = new HttpGet(url);
             response = httpClient.execute(httpget);
 
             int status = response.getStatusLine().getStatusCode();
@@ -89,12 +92,12 @@ public class RequestUtils {
             } else {
                 System.err.println("Unexpected response status: " + status);
                 System.err.println(url);
-                return  null;
+                return null;
             }
 
         } catch (IOException e) {
             e.printStackTrace();
-            if(response != null){
+            if (response != null) {
                 try {
                     response.close();
                 } catch (IOException e1) {
@@ -104,8 +107,10 @@ public class RequestUtils {
             return null;
         }
     }
+
     /**
      * 请求
+     *
      * @return
      */
     public static InputStream requestPost(String url, List<String> params, List<String> headers) {
@@ -145,12 +150,12 @@ public class RequestUtils {
             } else {
                 System.err.println("Unexpected response status: " + status);
                 System.err.println(url);
-                return  null;
+                return null;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            if(response != null){
+            if (response != null) {
                 try {
                     response.close();
                 } catch (IOException e1) {
@@ -163,20 +168,20 @@ public class RequestUtils {
 
     public static final CloseableHttpClient getHttpClient() {
 
-         RequestConfig config = RequestConfig.custom()
+        RequestConfig config = RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.DEFAULT)
                 .setSocketTimeout(30000)
                 .setConnectTimeout(30000)
                 .setConnectionRequestTimeout(30000)
                 .build();
 
-         CloseableHttpClient httpClient = HttpClients.custom()
+        CloseableHttpClient httpClient = HttpClients.custom()
                 .setDefaultCookieStore(cookieStore)
                 .setDefaultRequestConfig(config)
                 .setUserAgent(USER_AGENT_CHROME)
                 .build();
 
-         return  httpClient;
+        return httpClient;
     }
 
 
