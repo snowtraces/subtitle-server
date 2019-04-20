@@ -9,6 +9,7 @@ import org.xinyo.subtitle.entity.douban.Subject;
 import org.xinyo.subtitle.entity.vo.SubtitleVO;
 import org.xinyo.subtitle.service.SpiderService;
 import org.xinyo.subtitle.service.SubtitleService;
+import org.xinyo.subtitle.util.BloomFilterUtils;
 import org.xinyo.subtitle.util.FileUtils;
 import org.xinyo.subtitle.util.RequestUtils;
 
@@ -34,7 +35,6 @@ public class SpiderServiceImpl implements SpiderService {
     public void doCrawl(Subject subject) {
 
         // 1. 搜索字幕
-
         List<String> subList = getSubList(subject);
         if (subList.size() == 0) {
             return;
@@ -53,7 +53,7 @@ public class SpiderServiceImpl implements SpiderService {
             }
 
             SubtitleVO subtitleVO = new SubtitleVO();
-            subtitleVO.setId(subtitleId);
+            subtitleVO.setSourceId(subtitleId);
 
             String title = extraAttr(subText, "<h2><div[^<]*</div>", "</h2>");
             if (Strings.isNullOrEmpty(title)) {
@@ -83,7 +83,7 @@ public class SpiderServiceImpl implements SpiderService {
 
         // 3. 请求字幕地址
             String token = subtitleVO.getToken();
-            String id = subtitleVO.getId();
+            String id = subtitleVO.getSourceId();
 
             String url = "http://subhd.com/ajax/down_ajax";
 
@@ -152,12 +152,11 @@ public class SpiderServiceImpl implements SpiderService {
         if (!Strings.isNullOrEmpty(movieText)) {
             Matcher matcher = Pattern.compile("=\"dt_edition\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
             while (matcher.find()) {
-                System.err.println(matcher.group());
                 subList.add(matcher.group(1));
             }
         }
 
-        if (subList.size() < 5) {
+        if (subList.size() < 10) {
             // 2. 添加搜索数据
             String searchPath = null;
             String keyword = subject.getTitle().length() < 5
@@ -179,13 +178,20 @@ public class SpiderServiceImpl implements SpiderService {
 
             Matcher matcher = Pattern.compile("=\"d_title\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
             while (matcher.find()) {
-                System.err.println(matcher.group());
                 subList.add(matcher.group(1));
             }
         }
 
         // 3. 去重
-        subList = subList.stream().distinct().collect(Collectors.toList());
+        subList = subList.stream()
+                .distinct()
+                .filter(s -> !BloomFilterUtils.mightContainSubtitle(s))
+                .collect(Collectors.toList());
+        subList.forEach(s -> {
+            BloomFilterUtils.pushSubtitle(s);
+            System.err.println("待下载字幕id：" + s);
+        });
+
         return subList;
     }
 

@@ -15,4 +15,6 @@ public interface SubtitleService {
     List<Subtitle> getBySubjectId(String id);
 
     List<Subtitle> listBySubjectId(String id);
+
+    List<Subtitle> listAll();
 }

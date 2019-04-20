@@ -79,6 +79,13 @@ public class SubtitleServiceImpl extends ServiceImpl<SubtitleMapper, Subtitle> i
         return super.list(wrapper);
     }
 
+    @Override
+    public List<Subtitle> listAll() {
+        QueryWrapper<Subtitle> wrapper = new QueryWrapper<>();
+        wrapper.select("source_id");
+        return super.list(wrapper);
+    }
+
     private int[] buildTime(String line){
 
         line = line.replaceAll(timeRegex, "$1#$2");

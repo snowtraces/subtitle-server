@@ -28,6 +28,7 @@ public class Subtitle {
     private String remark;
 
     private String source; // 来源
+    private String sourceId;
     private String currentEpisode;
     private String currentSeason;
 

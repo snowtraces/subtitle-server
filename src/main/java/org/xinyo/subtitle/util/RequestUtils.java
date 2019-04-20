@@ -63,8 +63,12 @@ public class RequestUtils {
 
             savePath += File.separator + fileName;
             File file = new File(savePath);
-            FileOutputStream outputStream = new FileOutputStream(file);
-            ByteStreams.copy(request(url), outputStream);
+            if (!file.exists()) {
+                FileOutputStream outputStream = new FileOutputStream(file);
+                ByteStreams.copy(request(url), outputStream);
+            } else {
+                System.err.println("文件已存在，不重复下载");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return false;

@@ -2,10 +2,12 @@ package org.xinyo.subtitle.util;
 
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
+import org.xinyo.subtitle.entity.Subtitle;
 import org.xinyo.subtitle.entity.SubtitleLog;
 import org.xinyo.subtitle.entity.douban.SearchHistory;
 import org.xinyo.subtitle.service.SearchHistoryService;
 import org.xinyo.subtitle.service.SubtitleLogService;
+import org.xinyo.subtitle.service.SubtitleService;
 
 import java.util.List;
 
@@ -17,7 +19,7 @@ public class BloomFilterUtils {
     private static BloomFilter doubanFilter = null; // 豆瓣搜索过滤器
     private static BloomFilter subtitleFilter = null; // 字幕爬虫过滤器
     private static SearchHistoryService searchHistoryService = SpringContextHolder.getBean(SearchHistoryService.class);
-    private static SubtitleLogService subtitleLogService = SpringContextHolder.getBean(SubtitleLogService.class);
+    private static SubtitleService subtitleService = SpringContextHolder.getBean(SubtitleService.class);
 
     public static void initFilter() {
         // 1. 新建过滤器
@@ -30,9 +32,9 @@ public class BloomFilterUtils {
             searchHistories.forEach(h -> doubanFilter.put(h.getKeyword().getBytes()));
         }
 
-        List<SubtitleLog> subtitleLogs = subtitleLogService.listAll();
-        if (subtitleLogs != null && subtitleLogs.size() > 0) {
-            subtitleLogs.forEach(log -> subtitleFilter.put(log.getSubjectId().getBytes()));
+        List<Subtitle> subtitleList = subtitleService.listAll();
+        if (subtitleList != null && subtitleList.size() > 0) {
+            subtitleList.forEach(subtitle -> subtitleFilter.put(subtitle.getSourceId().getBytes()));
         }
 
         System.err.println("BloomFilter 初始化完毕");

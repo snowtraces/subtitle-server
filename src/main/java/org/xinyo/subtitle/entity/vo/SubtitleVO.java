@@ -14,6 +14,7 @@ public class SubtitleVO {
     private String token;
 
     private String source; // 来源
+    private String sourceId;
     private String currentEpisode;
     private String currentSeason;
 }

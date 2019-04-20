@@ -8,4 +8,6 @@ public interface SubtitleLogService {
     void doLog(SubtitleLog subtitleLog);
 
     List<SubtitleLog> listAll();
+
+    boolean checkIsNeedUpdate(String subjectId);
 }
