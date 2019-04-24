@@ -1,11 +1,14 @@
 package org.xinyo.subtitle.util;
 
+import lombok.extern.log4j.Log4j2;
+
 /**
  * 描述: Twitter的分布式自增ID雪花算法snowflake (Java版)
  *
  * @author yanpenglei
  * @create 2018-03-13 12:37
  **/
+@Log4j2
 public class SnowFlake {
 
     /**
@@ -56,7 +59,7 @@ public class SnowFlake {
      * @return
      */
     public synchronized long nextId() {
-        long currStmp = getNewstmp();
+        long currStmp = getNewStmp();
         if (currStmp < lastStmp) {
             throw new RuntimeException("Clock moved backwards.  Refusing to generate id");
         }
@@ -82,14 +85,14 @@ public class SnowFlake {
     }
 
     private long getNextMill() {
-        long mill = getNewstmp();
+        long mill = getNewStmp();
         while (mill <= lastStmp) {
-            mill = getNewstmp();
+            mill = getNewStmp();
         }
         return mill;
     }
 
-    private long getNewstmp() {
+    private long getNewStmp() {
         return System.currentTimeMillis();
     }
 
@@ -98,10 +101,10 @@ public class SnowFlake {
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {
-            System.out.println(snowFlake.nextId());
+            log.info(snowFlake.nextId());
         }
 
-        System.out.println(System.currentTimeMillis() - start);
+        log.info(System.currentTimeMillis() - start);
     }
 
     static SnowFlake snowFlake = new SnowFlake(1, 1);

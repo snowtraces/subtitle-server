@@ -1,6 +1,7 @@
 package org.xinyo.subtitle.util;
 
 import com.google.common.io.Files;
+import lombok.extern.log4j.Log4j2;
 import org.xinyo.subtitle.entity.UploadFile;
 
 import java.io.File;
@@ -12,13 +13,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Log4j2
 public class FileUtils {
     private static String basePath = "/data/";
     private static String[] textSuffix = new String[]{"srt", "ass", "log", "text"};
     private static String[] subtitleSuffix = new String[]{"srt", "ass"};
 
 
-    public static String createPosterPath(String basePath, List<String> idPath){
+    public static String createPath(String basePath, List<String> idPath){
         return mkdirs(basePath, idPath);
     }
 
@@ -97,7 +99,7 @@ public class FileUtils {
                 if ((thisByte < 32 || thisByte > 126)
                         && thisByte != 8 && thisByte != 9 && thisByte != 10 && thisByte != 13) bin++;
                 if (bin >= 5) {
-                    System.err.println(i);
+                    log.error(i);
                     return false;
                 }
             }
@@ -132,6 +134,6 @@ public class FileUtils {
         String s = "ABC123XYZ99999";
         List<String> strings = separateString(s, 3, 3);
 
-        System.err.println(strings);
+        log.error(strings);
     }
 }

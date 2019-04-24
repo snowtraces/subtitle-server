@@ -3,6 +3,7 @@ package org.xinyo.subtitle.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.xinyo.subtitle.entity.douban.SearchHistory;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Log4j2
 public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> implements DouBanApiService {
     private static final String SEARCH_URL = "http://api.douban.com/v2/movie/search?q=%s&start=%d&count=%d&apikey=0df993c66c0c636e29ecbb5344252a4a";
     private static final String DETAIL_URL = "http://api.douban.com/v2/movie/subject/%s?apikey=0df993c66c0c636e29ecbb5344252a4a";
@@ -45,7 +47,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
             e.printStackTrace();
         }
 
-        System.err.println("开始查询电影……");
+        log.info("开始查询电影……");
         String url = String.format(SEARCH_URL, keyword, start, count);
         String json = RequestUtils.requestText(url);
         return new Gson().fromJson(json, SearchResultVO.class);
@@ -54,7 +56,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
     @Override
     public SubjectVO searchDetail(Subject subject) {
 
-        System.err.println("开始查询详情……[" + subject.getTitle() + "]");
+        log.info("开始查询详情……[{}]", subject.getTitle());
         String url = String.format(DETAIL_URL, subject.getId());
         String json = RequestUtils.requestText(url);
 
@@ -66,11 +68,11 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
         String imgId = subject.getImgId();
         String url = imgId.startsWith("s") ? String.format(POSTER_URL_S, imgId) : String.format(POSTER_URL, imgId);
 
-        System.err.println("开始读取海报……[" + subject.getTitle() + "]");
+        log.info("开始读取海报……[{}]", subject.getTitle());
         String bathPath = "/Users/CHENG/CODE/Projects/subtitle-angular/src/assets/poster";
         List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
 
-        String path = FileUtils.createPosterPath(bathPath, idPath);
+        String path = FileUtils.createPath(bathPath, idPath);
         boolean isSuccess = RequestUtils.fetchBinary(url, path);
 
         return isSuccess;
@@ -94,7 +96,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
             wrapper.last("limit 10");
             subjects = super.list(wrapper);
             searchHistoryService.timesIncr(title);
-            System.out.println("LOCAL");
+            log.info("LOCAL");
         } else {
             BloomFilterUtils.pushSearch(title);
             // b 查豆瓣
@@ -108,7 +110,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
                 searchHistoryService.add(new SearchHistory(title, searchResult.getTotal()));
                 DoubanSearchThreadPool.getInstance().submitTask(new DoubanSearchThread(searchResult));
             }
-            System.out.println("DOUBAN");
+            log.info("DOUBAN");
         }
 
         return subjects;

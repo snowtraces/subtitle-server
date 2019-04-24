@@ -1,7 +1,10 @@
 package org.xinyo.subtitle.service.impl;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.xinyo.subtitle.entity.Subtitle;
@@ -23,6 +26,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
+@Log4j2
 public class SpiderServiceImpl implements SpiderService {
     private static final String SUBTITLE_SEARCH_PATH = "http://subhd.com/search0/%s";
     private static final String SUBTITLE_PATH = "http://subhd.com/ar0/%s";
@@ -33,6 +37,7 @@ public class SpiderServiceImpl implements SpiderService {
 
     @Override
     public void doCrawl(Subject subject) {
+        log.info("开始下载字幕：[{}]", subject.getTitle());
 
         // 1. 搜索字幕
         List<String> subList = getSubList(subject);
@@ -48,6 +53,7 @@ public class SpiderServiceImpl implements SpiderService {
             if (Strings.isNullOrEmpty(subText)) {
                 subText = RequestUtils.requestText(subPath);
                 if (Strings.isNullOrEmpty(subText)) {
+                    log.error("无法访问字幕页面");
                     continue;
                 }
             }
@@ -79,7 +85,7 @@ public class SpiderServiceImpl implements SpiderService {
                 subtitleVO.setVersion(extraAttr(info, "字幕版本：", "<br>"));
             }
 
-            System.err.println(subtitleVO);
+            log.info(subtitleVO);
 
         // 3. 请求字幕地址
             String token = subtitleVO.getToken();
@@ -101,6 +107,7 @@ public class SpiderServiceImpl implements SpiderService {
                 // 自动重试一次
                 s = RequestUtils.requestText(url, params, headers);
                 if (Strings.isNullOrEmpty(s)) {
+                    log.error("无法请求下载地址");
                     continue;
                 }
             }
@@ -108,28 +115,33 @@ public class SpiderServiceImpl implements SpiderService {
             HashMap<String, String> downloadMap = new Gson().fromJson(s, HashMap.class);
             String downloadPath = downloadMap.get("url");
 
-            System.err.println("下载地址：" + downloadPath);
+            log.info("下载地址：" + downloadPath);
 
 
             // 4. 下载保存文件
             String bathPath = "/Users/CHENG/CODE/Projects/subtitle-angular/src/assets/subtitles";
             List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
 
-            String path = FileUtils.createPosterPath(bathPath, idPath);
+            String path = FileUtils.createPath(bathPath, idPath);
             boolean isDownload = RequestUtils.fetchBinary(downloadPath, path);
             if (!isDownload) {
                 isDownload = RequestUtils.fetchBinary(downloadPath, path);
                 if (!isDownload) {
-                    System.err.println("字幕下载失败……");
+                    log.error("字幕下载失败……");
                     continue;
                 }
             }
 
             // 5. 入库
+            BloomFilterUtils.pushSubtitle(subtitleVO.getSubjectId() + subtitleVO.getSourceId());
             Subtitle subtitle = new Subtitle(subtitleVO);
             String fileName = downloadPath.substring(downloadPath.lastIndexOf("/") + 1);
             try {
                 fileName = URLEncoder.encode(fileName, "utf8").replaceAll("\\+", "%20");
+                if (fileName.length() > 128) {
+                    fileName = Hashing.md5().hashString(fileName, Charsets.UTF_8).toString()
+                         + fileName.substring(fileName.lastIndexOf("."));
+                }
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
@@ -137,6 +149,7 @@ public class SpiderServiceImpl implements SpiderService {
 
             subtitleService.add(subtitle);
         }
+        log.info("完成下载字幕：[{}]", subject.getTitle());
     }
 
     /**
@@ -144,22 +157,27 @@ public class SpiderServiceImpl implements SpiderService {
      */
     private List<String> getSubList(Subject subject) {
         List<String> subList = new ArrayList<>();
+        String subjectId = subject.getId();
 
         // 1. 直接访问
         String moviePath = String.format(MOVIE_PATH, subject.getId());
         String movieText = RequestUtils.requestText(moviePath);
-
+        if (Strings.isNullOrEmpty(movieText)) {
+            movieText = RequestUtils.requestText(moviePath);
+        }
         if (!Strings.isNullOrEmpty(movieText)) {
             Matcher matcher = Pattern.compile("=\"dt_edition\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
             while (matcher.find()) {
                 subList.add(matcher.group(1));
             }
+        } else {
+            log.error("无法访问movie页面");
         }
 
         if (subList.size() < 10) {
             // 2. 添加搜索数据
             String searchPath = null;
-            String keyword = subject.getTitle().length() < 5
+            String keyword = subject.getTitle().length() < 4
                     ? (subject.getTitle() + " " + subject.getYear()) : subject.getTitle();
             try {
                 searchPath = String.format(SUBTITLE_SEARCH_PATH,
@@ -168,29 +186,29 @@ public class SpiderServiceImpl implements SpiderService {
                 e.printStackTrace();
             }
             movieText = RequestUtils.requestText(searchPath);
-
             if (Strings.isNullOrEmpty(movieText)) {
                 movieText = RequestUtils.requestText(searchPath);
-                if (Strings.isNullOrEmpty(movieText)) {
-                    return subList;
-                }
             }
-
-            Matcher matcher = Pattern.compile("=\"d_title\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
-            while (matcher.find()) {
-                subList.add(matcher.group(1));
+            if (!Strings.isNullOrEmpty(movieText)) {
+                Matcher matcher = Pattern.compile("=\"d_title\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
+                while (matcher.find()) {
+                    subList.add(matcher.group(1));
+                }
+            } else {
+                log.error("无法访问字幕搜索页面：" + keyword);
             }
         }
 
         // 3. 去重
         subList = subList.stream()
                 .distinct()
-                .filter(s -> !BloomFilterUtils.mightContainSubtitle(s))
+                .filter(s -> !BloomFilterUtils.mightContainSubtitle(subjectId + s))
                 .collect(Collectors.toList());
-        subList.forEach(s -> {
-            BloomFilterUtils.pushSubtitle(s);
-            System.err.println("待下载字幕id：" + s);
-        });
+        if (subList.size() == 0) {
+            log.info("无可下载字幕……");
+        } else {
+            subList.forEach(s -> log.info("待下载字幕id：{}", s));
+        }
 
         return subList;
     }

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.Data;
+import lombok.extern.log4j.Log4j2;
 import org.xinyo.subtitle.netty.annotation.Param;
 import org.xinyo.subtitle.netty.init.ControllerInitializer;
 import org.xinyo.subtitle.util.HttpUtils;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Log4j2
 public class HttpServerDispatchHandler {
     @Data
     public static class Result{
@@ -28,7 +30,7 @@ public class HttpServerDispatchHandler {
 
         HttpUtils.RequestParams params = HttpUtils.extractRequestParams(request);
 
-        System.err.println(params);
+        log.info(params);
 
         try {
             String uri = params.getUri();

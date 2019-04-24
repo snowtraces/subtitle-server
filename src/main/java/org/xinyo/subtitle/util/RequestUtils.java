@@ -1,7 +1,10 @@
 package org.xinyo.subtitle.util;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
+import lombok.extern.log4j.Log4j2;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
@@ -16,11 +19,13 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import sun.security.provider.MD5;
 
 import java.io.*;
 import java.net.URLEncoder;
 import java.util.List;
 
+@Log4j2
 public class RequestUtils {
     static CookieStore cookieStore = new BasicCookieStore();
     public static String USER_AGENT_CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36";
@@ -61,13 +66,20 @@ public class RequestUtils {
                 fileName = url.substring(url.lastIndexOf("/") + 1);
             }
 
+            // 文件名过长处理
+            if (fileName.length() > 128) {
+                fileName = Hashing.md5().hashString(fileName, Charsets.UTF_8).toString()
+                        + fileName.substring(fileName.lastIndexOf("."));
+            }
+
             savePath += File.separator + fileName;
             File file = new File(savePath);
             if (!file.exists()) {
                 FileOutputStream outputStream = new FileOutputStream(file);
                 ByteStreams.copy(request(url), outputStream);
+                outputStream.close();
             } else {
-                System.err.println("文件已存在，不重复下载");
+                log.info("文件已存在，不重复下载");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,8 +106,8 @@ public class RequestUtils {
                 InputStream is = entity.getContent();
                 return is;
             } else {
-                System.err.println("Unexpected response status: " + status);
-                System.err.println(url);
+                log.error("Unexpected response status: " + status);
+                log.error(url);
                 return null;
             }
 
@@ -152,8 +164,8 @@ public class RequestUtils {
                 InputStream is = entity.getContent();
                 return is;
             } else {
-                System.err.println("Unexpected response status: " + status);
-                System.err.println(url);
+                log.error("Unexpected response status: " + status);
+                log.error(url);
                 return null;
             }
 

@@ -2,11 +2,10 @@ package org.xinyo.subtitle.util;
 
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
+import lombok.extern.log4j.Log4j2;
 import org.xinyo.subtitle.entity.Subtitle;
-import org.xinyo.subtitle.entity.SubtitleLog;
 import org.xinyo.subtitle.entity.douban.SearchHistory;
 import org.xinyo.subtitle.service.SearchHistoryService;
-import org.xinyo.subtitle.service.SubtitleLogService;
 import org.xinyo.subtitle.service.SubtitleService;
 
 import java.util.List;
@@ -14,6 +13,7 @@ import java.util.List;
 /**
  * 布隆过滤工具类
  */
+@Log4j2
 public class BloomFilterUtils {
     private static final int FILTER_SIZE = 10000;
     private static BloomFilter doubanFilter = null; // 豆瓣搜索过滤器
@@ -34,10 +34,11 @@ public class BloomFilterUtils {
 
         List<Subtitle> subtitleList = subtitleService.listAll();
         if (subtitleList != null && subtitleList.size() > 0) {
-            subtitleList.forEach(subtitle -> subtitleFilter.put(subtitle.getSourceId().getBytes()));
+            subtitleList.forEach(subtitle -> subtitleFilter
+                    .put((subtitle.getSubjectId() + subtitle.getSourceId()).getBytes()));
         }
 
-        System.err.println("BloomFilter 初始化完毕");
+        log.info("BloomFilter 初始化完毕");
     }
 
     public static void pushSearch(String input) {

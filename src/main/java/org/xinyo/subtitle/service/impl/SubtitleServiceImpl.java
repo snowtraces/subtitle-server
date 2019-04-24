@@ -82,7 +82,7 @@ public class SubtitleServiceImpl extends ServiceImpl<SubtitleMapper, Subtitle> i
     @Override
     public List<Subtitle> listAll() {
         QueryWrapper<Subtitle> wrapper = new QueryWrapper<>();
-        wrapper.select("source_id");
+        wrapper.select("source_id", "subject_id");
         return super.list(wrapper);
     }
 

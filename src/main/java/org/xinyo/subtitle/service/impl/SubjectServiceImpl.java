@@ -40,6 +40,7 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
     public List<Subject> getTopBySize(int size) {
         // TODO 热门统计逻辑
         QueryWrapper<Subject> wrapper = new QueryWrapper<>();
+        wrapper.gt("ratings_count", 10000);
         wrapper.orderByDesc("rating");
         wrapper.last("limit " + size);
         List<Subject> list = super.list(wrapper);
