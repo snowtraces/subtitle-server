@@ -86,6 +86,18 @@ public class SubtitleServiceImpl extends ServiceImpl<SubtitleMapper, Subtitle> i
         return super.list(wrapper);
     }
 
+    @Override
+    public String getSubjectIdById(String subtitleId) {
+        QueryWrapper<Subtitle> wrapper = new QueryWrapper<>();
+        wrapper.select("subject_id");
+        wrapper.eq("id", subtitleId);
+        wrapper.last("limit 1");
+
+        Subtitle one = super.getOne(wrapper);
+
+        return one == null ? null : one.getSubjectId();
+    }
+
     private int[] buildTime(String line){
 
         line = line.replaceAll(timeRegex, "$1#$2");

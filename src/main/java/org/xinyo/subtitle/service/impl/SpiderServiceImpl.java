@@ -62,13 +62,14 @@ public class SpiderServiceImpl implements SpiderService {
             subtitleVO.setSourceId(subtitleId);
 
             String title = extraAttr(subText, "<h2><div[^<]*</div>", "</h2>");
+
             if (Strings.isNullOrEmpty(title)) {
                 title = extraAttr(subText, "<h1><div[^<]*</div>", "</h1>");
             }
             if (Strings.isNullOrEmpty(title)) {
                 title = null;
             }
-            subtitleVO.setTitle(title);
+            subtitleVO.setTitle(normalizeText(title))   ;
             subtitleVO.setSource("subhd");
             subtitleVO.setCurrentSeason(extraAttr(subText, "<div class=\"tvlabel\">S", "E\\d+</div>"));
             subtitleVO.setCurrentEpisode(extraAttr(subText, "<div class=\"tvlabel\">S\\d+E", "</div>"));
@@ -177,8 +178,7 @@ public class SpiderServiceImpl implements SpiderService {
         if (subList.size() < 10) {
             // 2. 添加搜索数据
             String searchPath = null;
-            String keyword = subject.getTitle().length() < 4
-                    ? (subject.getTitle() + " " + subject.getYear()) : subject.getTitle();
+            String keyword = subject.getTitle() + " " + subject.getYear();
             try {
                 searchPath = String.format(SUBTITLE_SEARCH_PATH,
                         URLEncoder.encode(keyword, "utf8").replaceAll("\\+", "%20"));
@@ -221,11 +221,25 @@ public class SpiderServiceImpl implements SpiderService {
         return null;
     }
 
+    private static String normalizeText(String source) {
+        if (Strings.isNullOrEmpty(source)) {
+            return source;
+        }
+
+        // email-protection 转换
+        source = source.replaceAll("<a.*?email-protection.*?>.*?>", "@");
+
+        return source.trim();
+    }
+
     public static void main(String[] args) {
-        SpiderServiceImpl spiderService = new SpiderServiceImpl();
-        Subject subject = new Subject();
-        subject.setTitle("杀死比尔");
-        subject.setId("1291580");
-        spiderService.doCrawl(subject);
+//        SpiderServiceImpl spiderService = new SpiderServiceImpl();
+////        Subject subject = new Subject();
+////        subject.setTitle("杀死比尔");
+////        subject.setId("1291580");
+////        spiderService.doCrawl(subject);
+
+        String source = "火影忍者.疾风传.Naruto.Shippuuden.466-720(246-500)<a href=\"/cdn-cgi/l/email-protection\" class=\"__cf_email__\" data-cfemail=\"b29c83828a82c29ce5f7f0e0dbc29ffaddc0c0dbd0ded7e1c7d0c1f2\">[email&#160;protected]</a>简体中文.Simplified.Chinese-猪猪字幕组.jumpcn";
+        System.err.println(normalizeText(source));
     }
 }

@@ -55,6 +55,11 @@ public class RestController {
         return subjectService.getById(id);
     }
 
+    @RestMapping("/api/movieBySubtitleId")
+    public Object getMovieBySubtitleId(@Param("subtitleId")String subtitleId) {
+        return subjectService.getBySubtitleId(subtitleId);
+    }
+
     @RestMapping("/api/listTopMovies")
     public Object listTopMovies(){
         return subjectService.getTopBySize(24);
@@ -65,4 +70,10 @@ public class RestController {
         List<Subtitle> list = subtitleService.listBySubjectId(id);
         return list;
     }
+
+    @RestMapping("/api/getSubtitleById")
+    public Object getSubtitleById(@Param("id")String subtitleId) {
+        return subtitleService.getById(subtitleId);
+    }
+
 }

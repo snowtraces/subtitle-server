@@ -19,7 +19,6 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import sun.security.provider.MD5;
 
 import java.io.*;
 import java.net.URLEncoder;

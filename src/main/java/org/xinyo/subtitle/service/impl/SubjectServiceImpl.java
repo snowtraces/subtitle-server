@@ -11,9 +11,9 @@ import org.xinyo.subtitle.entity.douban.vo.SubjectVO;
 import org.xinyo.subtitle.mapper.SubjectMapper;
 import org.xinyo.subtitle.service.SubjectService;
 import org.xinyo.subtitle.service.SubtitleLogService;
+import org.xinyo.subtitle.service.SubtitleService;
 import org.xinyo.subtitle.task.SubtitleSpiderThread;
 import org.xinyo.subtitle.task.SubtitleSpiderThreadPool;
-import org.xinyo.subtitle.util.BloomFilterUtils;
 
 import java.util.List;
 
@@ -21,6 +21,8 @@ import java.util.List;
 public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> implements SubjectService {
     @Autowired
     private SubtitleLogService subtitleLogService;
+    @Autowired
+    private SubtitleService subtitleService;
 
     @Override
     public Subject getById(String id) {
@@ -63,5 +65,12 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
     public boolean saveDetail(SubjectVO subjectVO) {
         Subject subject = new Subject(subjectVO);
         return super.updateById(subject);
+    }
+
+    @Override
+    public Subject getBySubtitleId(String subtitleId) {
+        String subjectId = subtitleService.getSubjectIdById(subtitleId);
+
+        return super.getById(subjectId);
     }
 }

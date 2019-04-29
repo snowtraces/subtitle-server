@@ -13,4 +13,6 @@ public interface SubjectService {
     boolean save(List<Subject> subjects);
 
     boolean saveDetail(SubjectVO subjectVO);
+
+    Subject getBySubtitleId(String subtitleId);
 }

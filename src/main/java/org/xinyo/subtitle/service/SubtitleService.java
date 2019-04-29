@@ -1,11 +1,12 @@
 package org.xinyo.subtitle.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import org.xinyo.subtitle.entity.SRTSubtitleUnit;
 import org.xinyo.subtitle.entity.Subtitle;
 
 import java.util.List;
 
-public interface SubtitleService {
+public interface SubtitleService extends IService<Subtitle> {
 
 
     List<SRTSubtitleUnit> readSubtitle(List<String> lines);
@@ -17,4 +18,7 @@ public interface SubtitleService {
     List<Subtitle> listBySubjectId(String id);
 
     List<Subtitle> listAll();
+
+    String getSubjectIdById(String subtitleId);
+
 }
