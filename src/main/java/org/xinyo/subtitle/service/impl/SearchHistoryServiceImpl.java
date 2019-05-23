@@ -32,7 +32,7 @@ public class SearchHistoryServiceImpl extends ServiceImpl<SearchHistoryMapper, S
         String keyword = searchHistory.getKeyword();
         SearchHistory byId = super.getById(keyword);
 
-        Integer times = byId.getSearchTimes();
+        Integer times = byId == null ? null : byId.getSearchTimes();
         searchHistory.setSearchTimes(times == null ? 0 : times + 1);
         searchHistory.setUpdateTime(LocalDateTime.now());
 
