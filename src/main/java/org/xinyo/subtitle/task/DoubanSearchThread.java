@@ -66,10 +66,5 @@ public class DoubanSearchThread implements Runnable, Serializable {
             DoubanApiThreadPool.getInstance().submitTask(new DoubanDetailThread(s));
         });
 
-        // 更新历史记录
-        SearchHistory searchHistory = new SearchHistory();
-        searchHistory.setKeyword(keyword);
-        searchHistory.setTotal(total);
-        searchHistoryService.update(searchHistory);
     }
 }

@@ -1,5 +1,6 @@
 package org.xinyo.subtitle.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,8 +26,13 @@ public class SearchHistoryServiceImpl extends ServiceImpl<SearchHistoryMapper, S
     }
 
     @Override
+    @Transactional
     public void update(SearchHistory searchHistory) {
-        Integer times = searchHistory.getSearchTimes();
+
+        String keyword = searchHistory.getKeyword();
+        SearchHistory byId = super.getById(keyword);
+
+        Integer times = byId.getSearchTimes();
         searchHistory.setSearchTimes(times == null ? 0 : times + 1);
         searchHistory.setUpdateTime(LocalDateTime.now());
 
@@ -47,5 +53,25 @@ public class SearchHistoryServiceImpl extends ServiceImpl<SearchHistoryMapper, S
     @Override
     public List<SearchHistory> listAll() {
         return super.list();
+    }
+
+    @Override
+    public boolean isNeedUpdate(String keyword) {
+        QueryWrapper<SearchHistory> wrapper = new QueryWrapper<>();
+        wrapper.eq("keyword", keyword);
+        wrapper.last("limit 1");
+
+        SearchHistory one = super.getOne(wrapper);
+
+        if (one == null) {
+            return true;
+        } else {
+            LocalDateTime updateTime = one.getUpdateTime();
+            if (updateTime.isBefore(LocalDateTime.now().minusDays(7))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

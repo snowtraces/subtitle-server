@@ -14,4 +14,6 @@ public interface SearchHistoryService {
     void timesIncr(String keyword);
 
     List<SearchHistory> listAll();
+
+    boolean isNeedUpdate(String keyword);
 }

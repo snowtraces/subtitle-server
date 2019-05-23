@@ -9,5 +9,5 @@ public interface SubtitleLogService {
 
     List<SubtitleLog> listAll();
 
-    boolean checkIsNeedUpdate(String subjectId);
+    boolean isNeedUpdate(String subjectId);
 }

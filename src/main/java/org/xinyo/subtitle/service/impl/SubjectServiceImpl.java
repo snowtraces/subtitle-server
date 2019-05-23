@@ -29,7 +29,7 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
         Subject byId = super.getById(id);
 
         // 下载字幕
-        boolean isNeedUpdate = subtitleLogService.checkIsNeedUpdate(id);
+        boolean isNeedUpdate = subtitleLogService.isNeedUpdate(id);
         if (isNeedUpdate) {
             SubtitleSpiderThreadPool.getInstance().submitTask(new SubtitleSpiderThread(byId));
             subtitleLogService.doLog(new SubtitleLog(byId.getId()));

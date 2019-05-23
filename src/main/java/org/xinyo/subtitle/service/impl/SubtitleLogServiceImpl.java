@@ -23,7 +23,7 @@ public class SubtitleLogServiceImpl extends ServiceImpl<SubtitleLogMapper, Subti
     }
 
     @Override
-    public boolean checkIsNeedUpdate(String subjectId) {
+    public boolean isNeedUpdate(String subjectId) {
         QueryWrapper<SubtitleLog> wrapper = new QueryWrapper<>();
         wrapper.eq("subject_id", subjectId);
 
