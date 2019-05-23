@@ -1,8 +1,6 @@
 package org.xinyo.subtitle.service.impl;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
-import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,13 +118,15 @@ public class SpiderServiceImpl implements SpiderService {
 
 
             // 4. 下载保存文件
+            Subtitle subtitle = new Subtitle(subtitleVO);
+            String fileName = subtitle.getId() + RequestUtils.getSubFixFromUrl(downloadPath);
             String bathPath = "/Users/CHENG/CODE/Projects/subtitle-angular/src/assets/subtitles";
             List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
 
             String path = FileUtils.createPath(bathPath, idPath);
-            boolean isDownload = RequestUtils.fetchBinary(downloadPath, path);
+            boolean isDownload = RequestUtils.fetchBinary(downloadPath, path, fileName);
             if (!isDownload) {
-                isDownload = RequestUtils.fetchBinary(downloadPath, path);
+                isDownload = RequestUtils.fetchBinary(downloadPath, path, fileName);
                 if (!isDownload) {
                     log.error("字幕下载失败……");
                     continue;
@@ -135,17 +135,6 @@ public class SpiderServiceImpl implements SpiderService {
 
             // 5. 入库
             BloomFilterUtils.pushSubtitle(subtitleVO.getSubjectId() + subtitleVO.getSourceId());
-            Subtitle subtitle = new Subtitle(subtitleVO);
-            String fileName = downloadPath.substring(downloadPath.lastIndexOf("/") + 1);
-            try {
-                fileName = URLEncoder.encode(fileName, "utf8").replaceAll("\\+", "%20");
-                if (fileName.length() > 128) {
-                    fileName = Hashing.md5().hashString(fileName, Charsets.UTF_8).toString()
-                         + fileName.substring(fileName.lastIndexOf("."));
-                }
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
             subtitle.setFileName(fileName);
 
             subtitleService.add(subtitle);

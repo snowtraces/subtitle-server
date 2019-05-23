@@ -1,6 +1,7 @@
 package org.xinyo.subtitle.util;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
@@ -52,23 +53,18 @@ public class RequestUtils {
     }
 
     public static boolean fetchBinary(String url, String savePath) {
+        return fetchBinary(url, savePath, null);
+    }
+
+    public static boolean fetchBinary(String url, String savePath, String fileName) {
         try {
             url = url.substring(0, url.lastIndexOf("/") + 1)
                     + URLEncoder.encode(url.substring(url.lastIndexOf("/") + 1), "utf8")
                     .replaceAll("\\+", "%20")
                     .replaceAll("%3F", "?");
 
-            String fileName;
-            if (url.contains("?")) {
-                fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
-            } else {
-                fileName = url.substring(url.lastIndexOf("/") + 1);
-            }
-
-            // 文件名过长处理
-            if (fileName.length() > 128) {
-                fileName = Hashing.md5().hashString(fileName, Charsets.UTF_8).toString()
-                        + fileName.substring(fileName.lastIndexOf("."));
+            if (Strings.isNullOrEmpty(fileName)) {
+                fileName = getFileNameFromUrl(url);
             }
 
             savePath += File.separator + fileName;
@@ -85,6 +81,27 @@ public class RequestUtils {
             return false;
         }
         return true;
+    }
+
+    public static String getFileNameFromUrl(String url) {
+        String fileName;
+        if (url.contains("?")) {
+            fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("?"));
+        } else {
+            fileName = url.substring(url.lastIndexOf("/") + 1);
+        }
+
+        // 文件名过长处理
+        if (fileName.length() > 128) {
+            fileName = Hashing.md5().hashString(fileName, Charsets.UTF_8).toString()
+                    + fileName.substring(fileName.lastIndexOf("."));
+        }
+        return fileName;
+    }
+
+    public static String getSubFixFromUrl(String url) {
+        String fileName = getFileNameFromUrl(url);
+        return fileName.substring(fileName.lastIndexOf("."));
     }
 
     /**
