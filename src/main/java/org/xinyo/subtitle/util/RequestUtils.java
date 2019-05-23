@@ -92,7 +92,7 @@ public class RequestUtils {
         }
 
         // 文件名过长处理
-        if (fileName.length() > 128) {
+        if (fileName.length() > 255) {
             fileName = Hashing.md5().hashString(fileName, Charsets.UTF_8).toString()
                     + fileName.substring(fileName.lastIndexOf("."));
         }

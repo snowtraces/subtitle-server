@@ -24,6 +24,7 @@ public class Subtitle {
     private Integer type; // 1.翻译 2.官方 3.听译 4.机翻
     private String version;
     private String fileName;
+    private String sourceFileName;
     private LocalDateTime createTime;
     private String remark;
 

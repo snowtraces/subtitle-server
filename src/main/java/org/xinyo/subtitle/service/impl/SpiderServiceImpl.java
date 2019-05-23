@@ -120,6 +120,7 @@ public class SpiderServiceImpl implements SpiderService {
             // 4. 下载保存文件
             Subtitle subtitle = new Subtitle(subtitleVO);
             String fileName = subtitle.getId() + RequestUtils.getSubFixFromUrl(downloadPath);
+            String sourceFileName = RequestUtils.getFileNameFromUrl(downloadPath);
             String bathPath = "/Users/CHENG/CODE/Projects/subtitle-angular/src/assets/subtitles";
             List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
 
@@ -136,6 +137,7 @@ public class SpiderServiceImpl implements SpiderService {
             // 5. 入库
             BloomFilterUtils.pushSubtitle(subtitleVO.getSubjectId() + subtitleVO.getSourceId());
             subtitle.setFileName(fileName);
+            subtitle.setSourceFileName(sourceFileName);
 
             subtitleService.add(subtitle);
         }
