@@ -26,9 +26,9 @@ import java.util.stream.Collectors;
 @Service
 @Log4j2
 public class SpiderServiceImpl implements SpiderService {
-    private static final String SUBTITLE_SEARCH_PATH = "http://subhd.com/search0/%s";
-    private static final String SUBTITLE_PATH = "http://subhd.com/ar0/%s";
-    private static final String MOVIE_PATH = "http://subhd.com/do0/%s";
+    private static final String SUBTITLE_SEARCH_PATH = "https://subhd.tv/search0/%s";
+    private static final String SUBTITLE_PATH = "https://subhd.tv/ar0/%s";
+    private static final String MOVIE_PATH = "https://subhd.tv/do0/%s";
 
     @Autowired
     private SubtitleService subtitleService;
@@ -90,15 +90,15 @@ public class SpiderServiceImpl implements SpiderService {
             String token = subtitleVO.getToken();
             String id = subtitleVO.getSourceId();
 
-            String url = "http://subhd.com/ajax/down_ajax";
+            String url = "https://subhd.tv/ajax/down_ajax";
 
             List<String> params = new ArrayList<>();
             params.add("sub_id:" + id );
             params.add("dtoken:" + token );
 
             List<String> headers = new ArrayList<>();
-            headers.add("Host:subhd.com");
-            headers.add("Origin:http://subhd.com");
+            headers.add("Host:subhd.tv");
+            headers.add("Origin:https://subhd.tv");
 
             String s = RequestUtils.requestText(url, params, headers); // {"success":true,"url":"http:\/\/dl1.subhd.com\/sub\/2016\/05\/146418042012852.zip"}
 

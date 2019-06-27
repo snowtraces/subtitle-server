@@ -27,10 +27,16 @@ import java.util.stream.Collectors;
 @Service
 @Log4j2
 public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> implements DouBanApiService {
-    private static final String SEARCH_URL = "http://api.douban.com/v2/movie/search?q=%s&start=%d&count=%d&apikey=0df993c66c0c636e29ecbb5344252a4a";
-    private static final String DETAIL_URL = "http://api.douban.com/v2/movie/subject/%s?apikey=0df993c66c0c636e29ecbb5344252a4a";
-    private static final String POSTER_URL = "http://img3.doubanio.com/view/photo/s_ratio_poster/public/%s.webp?apikey=0df993c66c0c636e29ecbb5344252a4a";
-    private static final String POSTER_URL_S = "https://img3.doubanio.com/view/subject/s/public/%s.webp?apikey=0df993c66c0c636e29ecbb5344252a4a";
+    /**
+     * 备用地址 [douban.uieee.com]
+     * super key [0df993c66c0c636e29ecbb5344252a4a, 0b2bdeda43b5688921839c8ecb20399b ]
+     * common key [0dad551ec0f84ed02907ff5c42e8ec70, 0bcf52793711959c236df76ba534c0d4]
+     */
+    private static final String API_KEY = "0dad551ec0f84ed02907ff5c42e8ec70";
+    private static final String SEARCH_URL = "http://api.douban.com/v2/movie/search?q=%s&start=%d&count=%d&apikey=" + API_KEY;
+    private static final String DETAIL_URL = "http://api.douban.com/v2/movie/subject/%s?apikey=" + API_KEY;
+    private static final String POSTER_URL = "http://img3.doubanio.com/view/photo/s_ratio_poster/public/%s.webp?apikey=" + API_KEY;
+    private static final String POSTER_URL_S = "https://img3.doubanio.com/view/subject/s/public/%s.webp?apikey=" + API_KEY;
 
     private final SearchHistoryService searchHistoryService;
 
@@ -83,8 +89,12 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
         List<Subject> subjects = null;
 
         // 1. 判断是否存在本地数据
+        boolean needUpdate = true;
         boolean isSearched = BloomFilterUtils.mightContainSearch(title);
         if (isSearched) {
+            needUpdate = searchHistoryService.isNeedUpdate(title);
+        }
+        if (!needUpdate) {
             // a 查询本地
             QueryWrapper<Subject> wrapper = new QueryWrapper<>();
             wrapper.like("title", title)
@@ -107,7 +117,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
                 if (subjectVOs != null && subjectVOs.size() > 0) {
                     subjects = subjectVOs.stream().map(Subject::new).collect(Collectors.toList());
                 }
-                searchHistoryService.add(new SearchHistory(title, searchResult.getTotal()));
+                searchHistoryService.update(new SearchHistory(title, searchResult.getTotal()));
                 DoubanSearchThreadPool.getInstance().submitTask(new DoubanSearchThread(searchResult));
             }
             log.info("DOUBAN");
