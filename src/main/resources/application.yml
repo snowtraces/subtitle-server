@@ -29,3 +29,5 @@ mybatis-plus:
 netty:
   http:
     port: 9090
+custom:
+  basePath: C:/data/subtitle/

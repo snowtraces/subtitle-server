@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xinyo.subtitle.entity.douban.SearchHistory;
 import org.xinyo.subtitle.entity.douban.Subject;
@@ -39,6 +40,9 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
     private static final String POSTER_URL_S = "https://img3.doubanio.com/view/subject/s/public/%s.webp?apikey=" + API_KEY;
 
     private final SearchHistoryService searchHistoryService;
+
+    @Value("${custom.basePath}")
+    private String basePath;
 
     @Autowired
     public DouBanApiServiceImpl(SearchHistoryService searchHistoryService) {
@@ -75,10 +79,9 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
         String url = imgId.startsWith("s") ? String.format(POSTER_URL_S, imgId) : String.format(POSTER_URL, imgId);
 
         log.info("开始读取海报……[{}]", subject.getTitle());
-        String bathPath = "/Users/CHENG/CODE/Projects/subtitle-angular/src/assets/poster";
         List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
 
-        String path = FileUtils.createPath(bathPath, idPath);
+        String path = FileUtils.createPath(basePath + "poster", idPath);
         boolean isSuccess = RequestUtils.fetchBinary(url, path);
 
         return isSuccess;

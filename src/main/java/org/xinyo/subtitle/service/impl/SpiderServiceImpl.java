@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xinyo.subtitle.entity.Subtitle;
 import org.xinyo.subtitle.entity.douban.Subject;
@@ -29,6 +30,9 @@ public class SpiderServiceImpl implements SpiderService {
     private static final String SUBTITLE_SEARCH_PATH = "https://subhd.tv/search0/%s";
     private static final String SUBTITLE_PATH = "https://subhd.tv/ar0/%s";
     private static final String MOVIE_PATH = "https://subhd.tv/do0/%s";
+
+    @Value("${custom.basePath}")
+    private String basePath;
 
     @Autowired
     private SubtitleService subtitleService;
@@ -121,10 +125,9 @@ public class SpiderServiceImpl implements SpiderService {
             Subtitle subtitle = new Subtitle(subtitleVO);
             String fileName = subtitle.getId() + RequestUtils.getSubFixFromUrl(downloadPath);
             String sourceFileName = RequestUtils.getFileNameFromUrl(downloadPath);
-            String bathPath = "/Users/CHENG/CODE/Projects/subtitle-angular/src/assets/subtitles";
             List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
 
-            String path = FileUtils.createPath(bathPath, idPath);
+            String path = FileUtils.createPath(basePath + "subtitles", idPath);
             boolean isDownload = RequestUtils.fetchBinary(downloadPath, path, fileName);
             if (!isDownload) {
                 isDownload = RequestUtils.fetchBinary(downloadPath, path, fileName);
@@ -207,7 +210,7 @@ public class SpiderServiceImpl implements SpiderService {
     private String extraAttr(String source, String start, String end) {
         Matcher matcher = Pattern.compile(start + "(.*?)" + end).matcher(source);
         if(matcher.find()) {
-            return matcher.group(1);
+            return normalizeText(matcher.group(1));
         }
         return null;
     }
