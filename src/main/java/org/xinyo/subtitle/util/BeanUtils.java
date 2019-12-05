@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.Map;
 
 public class BeanUtils {
-    private final static Map beanCache = new HashMap();
-    private final static List<Class> clazzList = new ArrayList();
+    private final static Map BEAN_CACHE = new HashMap();
+    private final static List<Class> CLASS_LIST = new ArrayList();
 
     public static void addBean(Class clazz) {
-        if (!clazzList.contains(clazz)) {
-            clazzList.add(clazz);
+        if (!CLASS_LIST.contains(clazz)) {
+            CLASS_LIST.add(clazz);
         }
     }
 
@@ -28,17 +28,17 @@ public class BeanUtils {
 
     public static Object getBean(Class clazz) {
         String name = clazz.toString();
-        return beanCache.get(name);
+        return BEAN_CACHE.get(name);
     }
 
     public static void init() {
-        for (Class clazz : clazzList) {
+        for (Class clazz : CLASS_LIST) {
             Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
                 boolean hasReference = field.isAnnotationPresent(Reference.class);
                 if (hasReference) {
                     Class<?> type = field.getType();
-                    boolean contains = clazzList.contains(type);
+                    boolean contains = CLASS_LIST.contains(type);
                     if(!contains) {
                         throw new RuntimeException("没有找类(@Reference)：" + type.toString());
                     }
@@ -46,7 +46,7 @@ public class BeanUtils {
             }
         }
 
-        doInit(clazzList.size());
+        doInit(CLASS_LIST.size());
     }
 
 
@@ -56,10 +56,10 @@ public class BeanUtils {
             return;
         }
 
-        for (Class clazz : clazzList) {
+        for (Class clazz : CLASS_LIST) {
             boolean isReady = true;
             String key = clazz.toString();
-            boolean hasBean = beanCache.containsKey(key);
+            boolean hasBean = BEAN_CACHE.containsKey(key);
             if (!hasBean) {
                 // 尚未初始化, 判断是否有引用其他bean
                 Field[] fields = clazz.getDeclaredFields();
@@ -69,7 +69,7 @@ public class BeanUtils {
                         Class<?> type = field.getType();
                         String name = type.toString();
 
-                        if (!beanCache.containsKey(name)) {
+                        if (!BEAN_CACHE.containsKey(name)) {
                             // 依赖尚未初始化
                             isReady = false;
                             break;
@@ -87,13 +87,13 @@ public class BeanUtils {
                             boolean hasReference = field.isAnnotationPresent(Reference.class);
                             if (hasReference) {
                                 Class<?> type = field.getType();
-                                Object reference = beanCache.get(type.toString());
+                                Object reference = BEAN_CACHE.get(type.toString());
                                 field.setAccessible(true);
                                 field.set(o, reference);
                             }
                         }
 
-                        beanCache.put(clazz.toString(), o);
+                        BEAN_CACHE.put(clazz.toString(), o);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

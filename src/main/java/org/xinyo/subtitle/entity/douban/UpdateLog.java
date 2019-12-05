@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @TableName("douban_update_log")
 public class UpdateLog {
     @TableId
-    private String SubjectId;
+    private String subjectId;
     private LocalDateTime baseUpdateTime;
     private LocalDateTime posterUpdateTime;
 }

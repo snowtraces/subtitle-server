@@ -40,14 +40,27 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
 
     @Override
     public List<Subject> getTopBySize(int size) {
-        // TODO 热门统计逻辑
+        // movie
+        QueryWrapper movieWrapper = buildWrapper(size);
+        movieWrapper.eq("subtype", "movie");
+        List<Subject> movies = super.list(movieWrapper);
+
+        // tv
+        QueryWrapper tvWrapper = buildWrapper(size);
+        tvWrapper.eq("subtype", "tv");
+        List<Subject> tvs = super.list(tvWrapper);
+        movies.addAll(tvs);
+
+        return movies;
+    }
+
+    private QueryWrapper buildWrapper(int size) {
         QueryWrapper<Subject> wrapper = new QueryWrapper<>();
         wrapper.gt("ratings_count", 10000);
         wrapper.orderByDesc("rating");
-        wrapper.last("limit " + size);
-        List<Subject> list = super.list(wrapper);
+        wrapper.last("limit " + size/2);
 
-        return list;
+        return wrapper;
     }
 
     @Override

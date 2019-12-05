@@ -7,7 +7,8 @@ import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.xinyo.subtitle.netty.annotation.Param;
 import org.xinyo.subtitle.netty.init.ControllerInitializer;
-import org.xinyo.subtitle.util.HttpUtils;
+import org.xinyo.subtitle.netty.util.HttpUtils;
+import org.xinyo.subtitle.netty.util.RequestParam;
 import org.xinyo.subtitle.util.SpringContextHolder;
 
 import java.lang.reflect.Field;
@@ -20,7 +21,7 @@ import java.util.Map;
 @Log4j2
 public class HttpServerDispatchHandler {
     @Data
-    public static class Result{
+    public static class Result {
         private String data;
         private HttpResponseStatus status;
     }
@@ -28,9 +29,9 @@ public class HttpServerDispatchHandler {
     static Result dispatch(FullHttpRequest request) {
         Result result = new Result();
 
-        HttpUtils.RequestParams params = HttpUtils.extractRequestParams(request);
+        RequestParam params = HttpUtils.extractRequestParams(request);
 
-        log.info(params);
+        log.info(params.toString());
 
         try {
             String uri = params.getUri();
@@ -112,7 +113,7 @@ public class HttpServerDispatchHandler {
 
                         } else if (fieldType.isAssignableFrom(Short.class)
                                 || fieldType.isAssignableFrom(Integer.class)
-                                ||fieldType.isAssignableFrom(Long.class)
+                                || fieldType.isAssignableFrom(Long.class)
                                 || fieldType.isAssignableFrom(Float.class)
                                 || fieldType.isAssignableFrom(Double.class)) {
                             // 数字类型不一致，需要强制转型

@@ -62,7 +62,7 @@ public class RestController {
 
     @RestMapping("/api/listTopMovies")
     public Object listTopMovies(){
-        return subjectService.getTopBySize(24);
+        return subjectService.getTopBySize(32);
     }
 
     @RestMapping("/api/listSubtitles")

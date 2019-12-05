@@ -31,6 +31,12 @@ public class SpiderServiceImpl implements SpiderService {
     private static final String SUBTITLE_PATH = "https://subhd.tv/ar0/%s";
     private static final String MOVIE_PATH = "https://subhd.tv/do0/%s";
 
+
+    Pattern subtitleInfoPattern = Pattern.compile("<div class=\"b\">字幕信息</div>[^`]*?</div>");
+    Pattern movieLinkPattern = Pattern.compile("=\"dt_edition\"><a href=\"/ar0/(\\d+)\"");
+    Pattern searchLinkPattern = Pattern.compile("=\"d_title\"><a href=\"/ar0/(\\d+)\"");
+
+
     @Value("${custom.basePath}")
     private String basePath;
 
@@ -79,8 +85,7 @@ public class SpiderServiceImpl implements SpiderService {
             subtitleVO.setSubjectId(subject.getId());
             subtitleVO.setToken(extraAttr(subText, "dtoken=\"", "\""));
 
-            Pattern compile = Pattern.compile("<div class=\"b\">字幕信息</div>[^`]*?</div>");
-            Matcher infoMatcher = compile.matcher(subText);
+            Matcher infoMatcher = subtitleInfoPattern.matcher(subText);
             if (infoMatcher.find()) {
                 String info = infoMatcher.group();
                 subtitleVO.setLanguage(extraAttr(info, "语言：", "<br>"));
@@ -161,7 +166,7 @@ public class SpiderServiceImpl implements SpiderService {
             movieText = RequestUtils.requestText(moviePath);
         }
         if (!Strings.isNullOrEmpty(movieText)) {
-            Matcher matcher = Pattern.compile("=\"dt_edition\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
+            Matcher matcher = movieLinkPattern.matcher(movieText);
             while (matcher.find()) {
                 subList.add(matcher.group(1));
             }
@@ -184,7 +189,7 @@ public class SpiderServiceImpl implements SpiderService {
                 movieText = RequestUtils.requestText(searchPath);
             }
             if (!Strings.isNullOrEmpty(movieText)) {
-                Matcher matcher = Pattern.compile("=\"d_title\"><a href=\"/ar0/(\\d+)\"").matcher(movieText);
+                Matcher matcher = searchLinkPattern.matcher(movieText);
                 while (matcher.find()) {
                     subList.add(matcher.group(1));
                 }

@@ -23,12 +23,13 @@ import org.apache.http.impl.client.HttpClients;
 
 import java.io.*;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Log4j2
 public class RequestUtils {
     static CookieStore cookieStore = new BasicCookieStore();
-    public static String USER_AGENT_CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36";
+    private final static String USER_AGENT_CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36";
 
     public static String requestText(String url) {
         InputStream inputStream = request(url);
@@ -45,7 +46,7 @@ public class RequestUtils {
             return null;
         }
         try {
-            return CharStreams.toString(new InputStreamReader(inputStream, "utf-8"));
+            return CharStreams.toString(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -198,7 +199,7 @@ public class RequestUtils {
         }
     }
 
-    public static final CloseableHttpClient getHttpClient() {
+    public static CloseableHttpClient getHttpClient() {
 
         RequestConfig config = RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.DEFAULT)

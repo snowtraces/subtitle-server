@@ -20,7 +20,6 @@ public class SubtitleServerApplication implements CommandLineRunner {
     }
 
     public static void main(String[] args) {
-//        new SpringApplicationBuilder(SubtitleServerApplication.class).web(WebApplicationType.NONE).run(args);
         SpringApplication.run(SubtitleServerApplication.class, args);
     }
 

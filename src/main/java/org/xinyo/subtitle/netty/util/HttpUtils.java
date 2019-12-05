@@ -1,4 +1,4 @@
-package org.xinyo.subtitle.util;
+package org.xinyo.subtitle.netty.util;
 
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
@@ -17,18 +17,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author CHENG
+ */
 public class HttpUtils {
 
-    // 提取请求中的参数
-    public static RequestParams extractRequestParams(FullHttpRequest request) {
-        RequestParams requestParams = new RequestParams();
+    /**
+     * 提取请求中的参数
+     */
+    public static RequestParam extractRequestParams(FullHttpRequest request) {
+        RequestParam requestParam = new RequestParam();
         Map<String, List<Object>> params = new HashMap<>();
 
         // 1. url 参数
         String uri = request.uri();
         QueryStringDecoder stringDecoder = new QueryStringDecoder(uri);
 
-        requestParams.setUri(stringDecoder.rawPath());
+        requestParam.setUri(stringDecoder.rawPath());
         Map<String, List<String>> pathParams = stringDecoder.parameters();
         for (Map.Entry<String, List<String>> entry : pathParams.entrySet()) {
             List<Object> values = new ArrayList<>();
@@ -69,12 +74,12 @@ public class HttpUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        requestParams.pushParams(params);
+        requestParam.pushParams(params);
 
         // 3. cookie参数
         // TODO
 
-        return requestParams;
+        return requestParam;
     }
 
     public static void response(ChannelHandlerContext ctx, String result, HttpResponseStatus status){
@@ -104,53 +109,6 @@ public class HttpUtils {
             response(ctx, result.getStatus());
         } else {
             response(ctx, result.getData(), result.getStatus());
-        }
-    }
-
-    public static class RequestParams {
-        private String uri;
-        private Map<String, List<Object>> cookies = new HashMap<>();
-        private Map<String, List<Object>> params = new HashMap<>();
-
-        public String getUri() {
-            return uri;
-        }
-
-        public void setUri(String uri) {
-            this.uri = uri;
-        }
-
-        public Map<String, List<Object>> getCookies() {
-            return cookies;
-        }
-
-        public void setCookies(Map<String, List<Object>> cookies) {
-            this.cookies = cookies;
-        }
-
-        public Map<String, List<Object>> getParams() {
-            return params;
-        }
-
-        public void setParams(Map<String, List<Object>> params) {
-            this.params = params;
-        }
-
-        public void pushParams(Map<String, List<Object>> params) {
-            this.params.putAll(params);
-        }
-
-        public void pushCookies(Map<String, List<Object>> params) {
-            this.cookies.putAll(params);
-        }
-
-        @Override
-        public String toString() {
-            return "RequestParams{" +
-                    "uri='" + uri + '\'' +
-                    ", cookies=" + cookies +
-                    ", params=" + params +
-                    '}';
         }
     }
 

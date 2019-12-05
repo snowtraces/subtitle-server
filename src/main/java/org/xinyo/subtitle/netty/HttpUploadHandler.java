@@ -10,9 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.xinyo.subtitle.entity.SRTSubtitleUnit;
 import org.xinyo.subtitle.entity.UploadFile;
+import org.xinyo.subtitle.netty.util.HttpUtils;
 import org.xinyo.subtitle.service.SubtitleService;
 import org.xinyo.subtitle.util.FileUtils;
-import org.xinyo.subtitle.util.HttpUtils;
 import org.xinyo.subtitle.util.SpringContextHolder;
 
 import java.io.File;
@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
@@ -33,7 +34,7 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
         super(false);
     }
 
-    private static final HttpDataFactory factory = new DefaultHttpDataFactory(true);
+    private static final HttpDataFactory FACTORY = new DefaultHttpDataFactory(true);
     private static final String URI = "/api/fileUpload";
     private HttpPostRequestDecoder httpDecoder;
     private HttpRequest request;
@@ -44,7 +45,7 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
         if (httpObject instanceof HttpRequest) {
             request = (HttpRequest) httpObject;
             if (request.uri().startsWith(URI) && request.method().equals(HttpMethod.POST)) {
-                httpDecoder = new HttpPostRequestDecoder(factory, request);
+                httpDecoder = new HttpPostRequestDecoder(FACTORY, request);
                 httpDecoder.setDiscardThreshold(0);
             } else {
                 //传递给下一个Handler
@@ -84,7 +85,7 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
                     outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
 
                     if (FileUtils.isAsciiText(file)) {
-                        List<String> lines = Files.readLines(file, Charset.forName("utf8"));
+                        List<String> lines = Files.readLines(file, StandardCharsets.UTF_8);
                         if (FileUtils.isSubtitle(file)) {
                             SubtitleService subtitleService = SpringContextHolder.getBean(SubtitleService.class);
                             List<SRTSubtitleUnit> list = subtitleService.readSubtitle(lines);

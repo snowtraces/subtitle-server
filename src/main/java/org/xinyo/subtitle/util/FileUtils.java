@@ -97,7 +97,9 @@ public class FileUtils {
             for (byte thisByte : bytes) {
                 i++;
                 if ((thisByte < 32 || thisByte > 126)
-                        && thisByte != 8 && thisByte != 9 && thisByte != 10 && thisByte != 13) bin++;
+                        && thisByte != 8 && thisByte != 9 && thisByte != 10 && thisByte != 13) {
+                    bin++;
+                }
                 if (bin >= 5) {
                     log.error(i);
                     return false;
