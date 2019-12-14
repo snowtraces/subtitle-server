@@ -1,5 +1,8 @@
 package org.xinyo.subtitle.task;
 
+import com.github.junrar.Archive;
+import com.github.junrar.exception.RarException;
+import com.github.junrar.rarfile.FileHeader;
 import com.google.common.base.Strings;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -12,6 +15,7 @@ import org.xinyo.subtitle.util.FileUtils;
 import org.xinyo.subtitle.util.SpringContextHolder;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
@@ -58,12 +62,72 @@ public class SubtitleFileThread implements Runnable, Serializable {
                 unzip(path);
                 break;
             case "rar":
+                unrar(path);
                 break;
             default:
                 break;
         }
     }
 
+    public boolean unrar(String rarFileName) {
+        boolean flag = false;
+        try {
+            Archive archive = new Archive(new File(rarFileName), null);
+            if (archive == null || archive.isEncrypted()) {
+                return false;
+            }
+
+            int fileIdx = 0;
+            List<FileHeader> files = archive.getFileHeaders();
+            for (FileHeader fh : files) {
+                if (fh.isEncrypted()) {
+                    return false;
+                }
+                String fileName = fh.getFileNameW();
+                if (Strings.isNullOrEmpty(fileName)) {
+                    fileName = getRarFileName(fh);
+                }
+                StringBuilder builder = new StringBuilder();
+                try {
+                    BufferedReader br = new BufferedReader(
+                            new InputStreamReader(archive.getInputStream(fh)));
+                    String line;
+                    int idx = 0;
+                    while ((line = br.readLine()) != null && idx < MAX_LINE) {
+                        idx++;
+                        builder.append(line).append("\n");
+                    }
+                } catch (RarException e) {
+                    e.printStackTrace();
+                }
+
+                SubtitleFile subtitleFile = new SubtitleFile();
+                subtitleFile.setSubtitleId(subtitleId);
+                subtitleFile.setFileIndex(fileIdx);
+                subtitleFile.setFileName(fileName);
+                subtitleFile.setFileSize(String.valueOf(fh.getUnpSize()));
+                subtitleFile.setContent(builder.toString());
+                subtitleFileService.save(subtitleFile);
+
+                fileIdx++;
+            }
+            flag = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return flag;
+    }
+
+    private String getRarFileName(FileHeader fileHeader) {
+        try {
+            Field fileName = FileHeader.class.getDeclaredField("fileName");
+            fileName.setAccessible(true);
+            return (String) fileName.get(fileHeader);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     private void unzip(String file) {
         try (ZipArchiveInputStream inputStream = getZipFile(new File(file))) {
