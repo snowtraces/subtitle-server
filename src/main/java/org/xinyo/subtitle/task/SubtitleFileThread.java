@@ -14,10 +14,12 @@ import org.xinyo.subtitle.entity.SubtitleFile;
 import org.xinyo.subtitle.service.SubtitleFileService;
 import org.xinyo.subtitle.service.SubtitleService;
 import org.xinyo.subtitle.util.FileUtils;
+import org.xinyo.subtitle.util.InputStreamCache;
 import org.xinyo.subtitle.util.SpringContextHolder;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -31,7 +33,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
     private String subtitleId;
     private String basePath;
     private List<String> packageSuffixList = Arrays.asList("zip", "rar", "7z");
-    private List<String> subtitleSuffixList = Arrays.asList("srt", "ass");
+    private List<String> subtitleSuffixList = Arrays.asList("srt", "ass", "txt");
 
     public SubtitleFileThread(String subtitleId, String basePath) {
         this.subtitleId = subtitleId;
@@ -63,10 +65,10 @@ public class SubtitleFileThread implements Runnable, Serializable {
                 un7z(path);
                 break;
             case "zip":
-                unzip(path);
+                unZip(path);
                 break;
             case "rar":
-                unrar(path);
+                unRar(path);
                 break;
             default:
                 break;
@@ -74,7 +76,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
     }
 
 
-    public void un7z(String file) {
+    private void un7z(String file) {
         try {
             SevenZFile sevenZFile = new SevenZFile(new File(file));
             SevenZArchiveEntry ze;
@@ -89,13 +91,12 @@ public class SubtitleFileThread implements Runnable, Serializable {
                     byte[] content = new byte[(int) size];
                     try {
                         sevenZFile.read(content, 0, content.length);
-                        return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(content)));
+                        return new ByteArrayInputStream(content);
                     } catch (IOException e) {
                         e.printStackTrace();
                         return null;
                     }
                 });
-
 
                 fileIdx++;
             }
@@ -106,7 +107,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
     }
 
 
-    private void unrar(String rarFileName) {
+    private void unRar(String rarFileName) {
         try {
             Archive archive = new Archive(new File(rarFileName), null);
             if (archive.isEncrypted()) {
@@ -128,8 +129,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
 
                 trySaveSubtitleFile(fileIdx, fileName, size, () -> {
                     try {
-                        return new BufferedReader(
-                                new InputStreamReader(archive.getInputStream(fh)));
+                        return archive.getInputStream(fh);
                     } catch (RarException e) {
                         e.printStackTrace();
                         return null;
@@ -154,7 +154,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
         }
     }
 
-    private void unzip(String file) {
+    private void unZip(String file) {
         try (ZipArchiveInputStream inputStream = getZipFile(new File(file))) {
             ZipArchiveEntry ze;
             int fileIdx = 0;
@@ -162,10 +162,10 @@ public class SubtitleFileThread implements Runnable, Serializable {
                 if (ze.isDirectory()) {
                     continue;
                 }
-                String fileName = getFileNameWithoutFolder(ze.getName());
+                String fileName = ze.getName();
                 long size = ze.getSize();
 
-                trySaveSubtitleFile(fileIdx, fileName, size, () -> new BufferedReader(new InputStreamReader(inputStream)));
+                trySaveSubtitleFile(fileIdx, fileName, size, () -> inputStream);
 
                 fileIdx++;
             }
@@ -205,13 +205,19 @@ public class SubtitleFileThread implements Runnable, Serializable {
         return fullName.substring(index + 1).toLowerCase();
     }
 
-    private void trySaveSubtitleFile(int fileIdx, String fileName, long size, Supplier<BufferedReader> readerSupplier) {
+    private void trySaveSubtitleFile(int fileIdx, String fileName, long size, Supplier<InputStream> streamSupplier) {
         try {
             fileName = getFileNameWithoutFolder(fileName);
             String suffix = getSuffix(fileName);
             StringBuilder builder = new StringBuilder();
             if (size > 0 && suffix != null && subtitleSuffixList.indexOf(suffix) != -1) {
-                BufferedReader br = readerSupplier.get();
+                // 缓存inputStream
+                InputStream inputStream = streamSupplier.get();
+                InputStreamCache cache = new InputStreamCache(inputStream);
+                Charset charset = cache.getCharset();
+                BufferedReader br = new BufferedReader(
+                        new InputStreamReader(cache.getInputStream(), charset)
+                );
                 String line;
                 int idx = 0;
                 while ((line = br.readLine()) != null && idx < MAX_LINE) {
@@ -226,7 +232,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
         }
     }
 
-    private void saveSubtitleFile(int fileIdx, String fileName, String size, String content) {
+        private void saveSubtitleFile(int fileIdx, String fileName, String size, String content) {
         SubtitleFile subtitleFile = new SubtitleFile();
         subtitleFile.setSubtitleId(subtitleId);
         subtitleFile.setFileIndex(fileIdx);
