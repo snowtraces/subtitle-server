@@ -72,7 +72,15 @@ public class RequestUtils {
             File file = new File(savePath);
             if (!file.exists()) {
                 FileOutputStream outputStream = new FileOutputStream(file);
-                ByteStreams.copy(request(url), outputStream);
+                InputStream in = request(url);
+                // 失败重试一次
+                if (in == null) {
+                    in = request(url);
+                    if (in == null) {
+                        log.error("请求失败");
+                    }
+                }
+                ByteStreams.copy(in, outputStream);
                 outputStream.close();
             } else {
                 log.info("文件已存在，不重复下载");
@@ -120,8 +128,7 @@ public class RequestUtils {
             int status = response.getStatusLine().getStatusCode();
             if (status >= 200 && status < 300) {
                 HttpEntity entity = response.getEntity();
-                InputStream is = entity.getContent();
-                return is;
+                return entity.getContent();
             } else {
                 log.error("Unexpected response status: " + status);
                 log.error(url);

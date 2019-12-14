@@ -31,7 +31,7 @@ public class HttpServerDispatchHandler {
 
         RequestParam params = HttpUtils.extractRequestParams(request);
 
-        log.info(params.toString());
+        log.debug(params.toString());
 
         try {
             String uri = params.getUri();

@@ -3,11 +3,13 @@ package org.xinyo.subtitle.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.xinyo.subtitle.entity.Subtitle;
+import org.xinyo.subtitle.entity.SubtitleFile;
 import org.xinyo.subtitle.entity.douban.Subject;
 import org.xinyo.subtitle.netty.annotation.Param;
 import org.xinyo.subtitle.netty.annotation.RestMapping;
 import org.xinyo.subtitle.service.DouBanApiService;
 import org.xinyo.subtitle.service.SubjectService;
+import org.xinyo.subtitle.service.SubtitleFileService;
 import org.xinyo.subtitle.service.SubtitleService;
 
 import java.util.List;
@@ -18,16 +20,19 @@ public class RestController {
     private final SubjectService subjectService;
     private final DouBanApiService douBanApiService;
     private final SubtitleService subtitleService;
+    private final SubtitleFileService subtitleFileService;
 
     @Autowired
     public RestController(
             SubjectService subjectService,
             DouBanApiService douBanApiService,
-            SubtitleService subtitleService
+            SubtitleService subtitleService,
+            SubtitleFileService subtitleFileService
     ) {
         this.subjectService = subjectService;
         this.douBanApiService = douBanApiService;
         this.subtitleService = subtitleService;
+        this.subtitleFileService = subtitleFileService;
     }
 
     /**
@@ -74,6 +79,12 @@ public class RestController {
     @RestMapping("/api/getSubtitleById")
     public Object getSubtitleById(@Param("id")String subtitleId) {
         return subtitleService.getById(subtitleId);
+    }
+
+    @RestMapping("/api/listSubtitleFile")
+    public Object listSubtitleFile(@Param("subtitleId")String subtitleId) {
+        List<SubtitleFile> subtitleFiles = subtitleFileService.listBySubtitleId(subtitleId);
+        return subtitleFiles;
     }
 
 }
