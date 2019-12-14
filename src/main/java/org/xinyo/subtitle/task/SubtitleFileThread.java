@@ -69,7 +69,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
         }
     }
 
-    public boolean unrar(String rarFileName) {
+    private boolean unrar(String rarFileName) {
         boolean flag = false;
         try {
             Archive archive = new Archive(new File(rarFileName), null);
@@ -80,25 +80,28 @@ public class SubtitleFileThread implements Runnable, Serializable {
             int fileIdx = 0;
             List<FileHeader> files = archive.getFileHeaders();
             for (FileHeader fh : files) {
-                if (fh.isEncrypted()) {
+                if (fh.isEncrypted() || fh.isDirectory()) {
                     return false;
                 }
                 String fileName = fh.getFileNameW();
                 if (Strings.isNullOrEmpty(fileName)) {
                     fileName = getRarFileName(fh);
                 }
+                String suffix = getSuffix(fileName);
                 StringBuilder builder = new StringBuilder();
-                try {
-                    BufferedReader br = new BufferedReader(
-                            new InputStreamReader(archive.getInputStream(fh)));
-                    String line;
-                    int idx = 0;
-                    while ((line = br.readLine()) != null && idx < MAX_LINE) {
-                        idx++;
-                        builder.append(line).append("\n");
+                if (suffix != null && subtitleSuffixList.indexOf(suffix) != -1) {
+                    try {
+                        BufferedReader br = new BufferedReader(
+                                new InputStreamReader(archive.getInputStream(fh)));
+                        String line;
+                        int idx = 0;
+                        while ((line = br.readLine()) != null && idx < MAX_LINE) {
+                            idx++;
+                            builder.append(line).append("\n");
+                        }
+                    } catch (RarException e) {
+                        e.printStackTrace();
                     }
-                } catch (RarException e) {
-                    e.printStackTrace();
                 }
 
                 SubtitleFile subtitleFile = new SubtitleFile();
