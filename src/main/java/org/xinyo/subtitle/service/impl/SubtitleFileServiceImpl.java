@@ -24,6 +24,7 @@ public class SubtitleFileServiceImpl extends ServiceImpl<SubtitleFileMapper, Sub
     public List<SubtitleFile> listBySubtitleId(String subtitleId) {
         QueryWrapper<SubtitleFile> wrapper = new QueryWrapper<>();
         wrapper.eq("subtitle_id", subtitleId);
+        wrapper.orderByAsc("file_index");
         List<SubtitleFile> list = super.list(wrapper);
 
         if (list == null || list.isEmpty()) {
