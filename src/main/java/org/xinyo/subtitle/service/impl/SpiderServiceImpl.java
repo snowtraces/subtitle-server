@@ -177,7 +177,7 @@ public class SpiderServiceImpl implements SpiderService {
         if (subList.size() < 10) {
             // 2. 添加搜索数据
             String searchPath = null;
-            String keyword = subject.getTitle() + " " + subject.getYear();
+            String keyword = subject.getTitle().replaceAll("[()]", " ") + " " + subject.getYear();
             try {
                 searchPath = String.format(SUBTITLE_SEARCH_PATH,
                         URLEncoder.encode(keyword, "utf8").replaceAll("\\+", "%20"));

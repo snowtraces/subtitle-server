@@ -15,6 +15,7 @@ import org.xinyo.subtitle.service.SubtitleFileService;
 import org.xinyo.subtitle.service.SubtitleService;
 import org.xinyo.subtitle.util.FileUtils;
 import org.xinyo.subtitle.util.InputStreamCache;
+import org.xinyo.subtitle.util.RarUtils;
 import org.xinyo.subtitle.util.SpringContextHolder;
 
 import java.io.*;
@@ -107,6 +108,11 @@ public class SubtitleFileThread implements Runnable, Serializable {
     }
 
 
+    /**
+     * 无法识别RAR5格式
+     *
+     * @param rarFileName
+     */
     private void unRar(String rarFileName) {
         try {
             Archive archive = new Archive(new File(rarFileName), null);
@@ -139,7 +145,20 @@ public class SubtitleFileThread implements Runnable, Serializable {
                 fileIdx++;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (e instanceof RarException) {
+                List<SubtitleFile> fileList = RarUtils.getFileList(rarFileName);
+                if (fileList != null) {
+                    int fileIdx = 0;
+                    for (SubtitleFile subtitleFile : fileList) {
+                        subtitleFile.setSubtitleId(subtitleId);
+                        subtitleFile.setFileIndex(fileIdx++);
+                        subtitleFileService.save(subtitleFile);
+                    }
+                }
+
+            } else {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -232,7 +251,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
         }
     }
 
-        private void saveSubtitleFile(int fileIdx, String fileName, String size, String content) {
+    private void saveSubtitleFile(int fileIdx, String fileName, String size, String content) {
         SubtitleFile subtitleFile = new SubtitleFile();
         subtitleFile.setSubtitleId(subtitleId);
         subtitleFile.setFileIndex(fileIdx);

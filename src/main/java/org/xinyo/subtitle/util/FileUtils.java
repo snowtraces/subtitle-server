@@ -4,10 +4,8 @@ import com.google.common.io.Files;
 import lombok.extern.log4j.Log4j2;
 import org.xinyo.subtitle.entity.UploadFile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +18,7 @@ public class FileUtils {
     private static String[] subtitleSuffix = new String[]{"srt", "ass"};
 
 
-    public static String createPath(String basePath, List<String> idPath){
+    public static String createPath(String basePath, List<String> idPath) {
         return mkdirs(basePath, idPath);
     }
 
@@ -119,17 +117,33 @@ public class FileUtils {
 
     /**
      * 分割字符串
-     * @param in 输入
-     * @param len 分割长度
+     *
+     * @param in    输入
+     * @param len   分割长度
      * @param steps 步数
      */
-    public static List<String> separateString(String in, int len, int steps ) {
+    public static List<String> separateString(String in, int len, int steps) {
         List<String> list = new ArrayList<>();
         for (int i = 0; i < steps; i++) {
             list.add(in.substring(i * len, (i + 1) * len));
         }
 
         return list;
+    }
+
+
+    public static String readInputStream(InputStream inputStream, Charset charset) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            int i;
+            while ((i = inputStream.read()) != -1) {
+                outputStream.write(i);
+            }
+            return outputStream.toString(charset.name());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static void main(String[] args) {
