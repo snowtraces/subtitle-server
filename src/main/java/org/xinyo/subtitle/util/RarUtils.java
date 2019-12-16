@@ -35,10 +35,7 @@ public class RarUtils {
             Process proc = Runtime.getRuntime().exec(cmd);
             InputStream inputStream = proc.getInputStream();
             InputStreamCache inputStreamCache = new InputStreamCache(inputStream);
-            Charset charset = inputStreamCache.getCharset();
-
-            String output = FileUtils.readInputStream(inputStreamCache.getInputStream(), charset);
-
+            String output = inputStreamCache.getAllLines();
             String[] lines = output.split("\n");
 
             boolean startFileList = false;
@@ -77,7 +74,6 @@ public class RarUtils {
             }
 
             subtitleFileList.forEach(subtitleFile -> {
-
                 String suffix = FileUtils.getSuffix(subtitleFile.getFileName());
                 if (subtitleSuffixList.indexOf(suffix) != -1) {
                     String fileInfo = getFilePreview(file, subtitleFile.getFileName());
@@ -105,7 +101,7 @@ public class RarUtils {
             Process proc = Runtime.getRuntime().exec(cmd);
             InputStream inputStream = proc.getInputStream();
 
-            InputStreamCache cache = new InputStreamCache(inputStream);
+            InputStreamCache cache = new InputStreamCache(inputStream, 1024);
             String fixedLines = cache.getFixedLines(MAX_LINE);
             String[] lineArray = fixedLines.split("\n");
 

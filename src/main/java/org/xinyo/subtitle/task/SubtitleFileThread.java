@@ -224,7 +224,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
             if (size > 0 && suffix != null && subtitleSuffixList.indexOf(suffix) != -1) {
                 // 缓存inputStream
                 InputStream inputStream = streamSupplier.get();
-                InputStreamCache cache = new InputStreamCache(inputStream);
+                InputStreamCache cache = new InputStreamCache(inputStream, 1024);
                 content = cache.getFixedLines(MAX_LINE);
             }
 

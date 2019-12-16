@@ -18,15 +18,27 @@ public class InputStreamCache {
     private ByteArrayOutputStream byteArrayOutputStream = null;
 
     public InputStreamCache(InputStream inputStream) {
+        this(inputStream, -1);
+    }
+
+    public InputStreamCache(InputStream inputStream, long byteLimit) {
         if (inputStream == null) {
             return;
         }
         byteArrayOutputStream = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
+        long lengthCount = 0;
         int len;
         try {
             while ((len = inputStream.read(buffer)) > -1) {
                 byteArrayOutputStream.write(buffer, 0, len);
+
+                if (byteLimit != -1) {
+                    lengthCount += len;
+                    if (lengthCount > byteLimit) {
+                        break;
+                    }
+                }
             }
             byteArrayOutputStream.flush();
             inputStream.close();
@@ -78,7 +90,10 @@ public class InputStreamCache {
             );
             String line;
             int idx = 0;
-            while ((line = br.readLine()) != null && idx < lineNumber) {
+            while (
+                    (line = br.readLine()) != null
+                    && (lineNumber == -1 || idx < lineNumber)
+            ) {
                 idx++;
                 builder.append(line).append("\n");
             }
@@ -87,6 +102,10 @@ public class InputStreamCache {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public String getAllLines() {
+        return getFixedLines(-1);
     }
 
 }
