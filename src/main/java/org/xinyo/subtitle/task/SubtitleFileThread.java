@@ -20,10 +20,11 @@ import org.xinyo.subtitle.util.SpringContextHolder;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
+
+import static org.xinyo.subtitle.util.FileUtils.getSuffix;
 
 @Log4j2
 public class SubtitleFileThread implements Runnable, Serializable {
@@ -109,7 +110,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
 
 
     /**
-     * 无法识别RAR5格式
+     * TODO 无法识别RAR5格式
      *
      * @param rarFileName
      */
@@ -145,19 +146,24 @@ public class SubtitleFileThread implements Runnable, Serializable {
                 fileIdx++;
             }
         } catch (Exception e) {
+            // RAR5 查看文件列表，暂不支持文件预览
             if (e instanceof RarException) {
-                List<SubtitleFile> fileList = RarUtils.getFileList(rarFileName);
-                if (fileList != null) {
-                    int fileIdx = 0;
-                    for (SubtitleFile subtitleFile : fileList) {
-                        subtitleFile.setSubtitleId(subtitleId);
-                        subtitleFile.setFileIndex(fileIdx++);
-                        subtitleFileService.save(subtitleFile);
-                    }
-                }
-
+                trySaveRar5File(rarFileName);
             } else {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    private void trySaveRar5File(String rarFileName) {
+        List<SubtitleFile> fileList = RarUtils.getFileList(rarFileName);
+        if (fileList != null) {
+            int fileIdx = 0;
+            for (SubtitleFile subtitleFile : fileList) {
+                subtitleFile.setSubtitleId(subtitleId);
+                subtitleFile.setFileIndex(fileIdx++);
+                subtitleFile.setFileName(getFileNameWithoutFolder(subtitleFile.getFileName()));
+                subtitleFileService.save(subtitleFile);
             }
         }
     }
@@ -198,20 +204,6 @@ public class SubtitleFileThread implements Runnable, Serializable {
         return new ZipArchiveInputStream(new BufferedInputStream(new FileInputStream(zipFile)));
     }
 
-
-    private String getSuffix(String fileName) {
-        String extension = null;
-        if (Strings.isNullOrEmpty(fileName)) {
-            return null;
-        }
-
-        int i = fileName.lastIndexOf('.');
-        if (i > 0) {
-            extension = fileName.substring(i + 1);
-        }
-        return extension;
-    }
-
     private String getFileNameWithoutFolder(String fullName) {
         if (Strings.isNullOrEmpty(fullName)) {
             return fullName;
@@ -228,24 +220,15 @@ public class SubtitleFileThread implements Runnable, Serializable {
         try {
             fileName = getFileNameWithoutFolder(fileName);
             String suffix = getSuffix(fileName);
-            StringBuilder builder = new StringBuilder();
+            String content = null;
             if (size > 0 && suffix != null && subtitleSuffixList.indexOf(suffix) != -1) {
                 // 缓存inputStream
                 InputStream inputStream = streamSupplier.get();
                 InputStreamCache cache = new InputStreamCache(inputStream);
-                Charset charset = cache.getCharset();
-                BufferedReader br = new BufferedReader(
-                        new InputStreamReader(cache.getInputStream(), charset)
-                );
-                String line;
-                int idx = 0;
-                while ((line = br.readLine()) != null && idx < MAX_LINE) {
-                    idx++;
-                    builder.append(line).append("\n");
-                }
+                content = cache.getFixedLines(MAX_LINE);
             }
 
-            saveSubtitleFile(fileIdx, fileName, String.valueOf(size), builder.toString());
+            saveSubtitleFile(fileIdx, fileName, String.valueOf(size), content);
         } catch (Exception e) {
             e.printStackTrace();
         }

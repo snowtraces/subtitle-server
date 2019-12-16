@@ -1,5 +1,6 @@
 package org.xinyo.subtitle.util;
 
+import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import lombok.extern.log4j.Log4j2;
 import org.xinyo.subtitle.entity.UploadFile;
@@ -144,6 +145,19 @@ public class FileUtils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static String getSuffix(String fileName) {
+        String extension = null;
+        if (Strings.isNullOrEmpty(fileName)) {
+            return null;
+        }
+
+        int i = fileName.lastIndexOf('.');
+        if (i > 0) {
+            extension = fileName.substring(i + 1);
+        }
+        return extension;
     }
 
     public static void main(String[] args) {

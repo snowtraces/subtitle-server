@@ -3,9 +3,7 @@ package org.xinyo.subtitle.util;
 import lombok.extern.log4j.Log4j2;
 import org.mozilla.universalchardet.UniversalDetector;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -31,6 +29,7 @@ public class InputStreamCache {
                 byteArrayOutputStream.write(buffer, 0, len);
             }
             byteArrayOutputStream.flush();
+            inputStream.close();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -68,6 +67,26 @@ public class InputStreamCache {
             e.printStackTrace();
         }
         return StandardCharsets.UTF_8;
+    }
+
+    public String getFixedLines(int lineNumber) {
+        try {
+            StringBuilder builder = new StringBuilder();
+            Charset charset = getCharset();
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader(getInputStream(), charset)
+            );
+            String line;
+            int idx = 0;
+            while ((line = br.readLine()) != null && idx < lineNumber) {
+                idx++;
+                builder.append(line).append("\n");
+            }
+            return builder.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

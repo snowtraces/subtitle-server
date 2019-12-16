@@ -7,29 +7,35 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * @author CHENG
  */
 public class RarUtils {
+
+    private static final int TOP_REMOVE_LINE = 8;
+    private static final int MAX_LINE = 30 + TOP_REMOVE_LINE + 1;
+    private static List<String> subtitleSuffixList = Arrays.asList("srt", "ass", "txt");
+
+
+    private static String WIN_RAR_PATH
+            = "C:\\Users\\CHENG\\CODE\\Projects\\subtitle_server\\src\\main\\resources\\rar\\win\\UnRAR.exe";
+
     public static List<SubtitleFile> getFileList(String file) {
         File rarFile = new File(file);
-
-        // 获取WinRAR.exe的路径，放在java web工程下的WebRoot路径下
-        String winrarPath = "C:\\Users\\CHENG\\CODE\\Projects\\subtitle_server\\src\\main\\resources\\rar\\win\\UnRAR.exe";
         if (!rarFile.exists()) {
             return null;
         }
 
-        String cmd = winrarPath + " v " + rarFile;
+        String cmd = WIN_RAR_PATH + " v " + rarFile;
         System.out.println(cmd);
         try {
             Process proc = Runtime.getRuntime().exec(cmd);
             InputStream inputStream = proc.getInputStream();
             InputStreamCache inputStreamCache = new InputStreamCache(inputStream);
             Charset charset = inputStreamCache.getCharset();
-
 
             String output = FileUtils.readInputStream(inputStreamCache.getInputStream(), charset);
 
@@ -69,6 +75,15 @@ public class RarUtils {
                     subtitleFileList.add(subtitleFile);
                 }
             }
+
+            subtitleFileList.forEach(subtitleFile -> {
+
+                String suffix = FileUtils.getSuffix(subtitleFile.getFileName());
+                if (subtitleSuffixList.indexOf(suffix) != -1) {
+                    String fileInfo = getFilePreview(file, subtitleFile.getFileName());
+                    subtitleFile.setContent(fileInfo);
+                }
+            });
             return subtitleFileList;
 
         } catch (Exception e) {
@@ -77,6 +92,37 @@ public class RarUtils {
 
         return null;
     }
+
+    private static String getFilePreview(String file, String fileName) {
+        File rarFile = new File(file);
+        if (!rarFile.exists()) {
+            return null;
+        }
+
+        String cmd = String.format("%s p %s %s", WIN_RAR_PATH, rarFile, fileName);
+        System.out.println(cmd);
+        try {
+            Process proc = Runtime.getRuntime().exec(cmd);
+            InputStream inputStream = proc.getInputStream();
+
+            InputStreamCache cache = new InputStreamCache(inputStream);
+            String fixedLines = cache.getFixedLines(MAX_LINE);
+            String[] lineArray = fixedLines.split("\n");
+
+            StringBuilder builder = new StringBuilder();
+            for (int i = TOP_REMOVE_LINE; i < lineArray.length; i++) {
+                if (i == TOP_REMOVE_LINE) {
+                    lineArray[i] = lineArray[i].substring(lineArray[i].indexOf("%") + 1);
+                }
+                builder.append(lineArray[i]).append("\n");
+            }
+            return builder.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     public static void main(String[] args) {
 
