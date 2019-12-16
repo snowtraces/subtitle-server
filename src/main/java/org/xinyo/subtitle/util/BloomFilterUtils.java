@@ -12,12 +12,20 @@ import java.util.List;
 
 /**
  * 布隆过滤工具类
+ * @author CHENG
  */
+@SuppressWarnings("UnstableApiUsage")
 @Log4j2
 public class BloomFilterUtils {
     private static final int FILTER_SIZE = 10000;
-    private static BloomFilter doubanFilter = null; // 豆瓣搜索过滤器
-    private static BloomFilter subtitleFilter = null; // 字幕爬虫过滤器
+    /**
+     * 豆瓣搜索过滤器
+     */
+    private static BloomFilter doubanFilter = null;
+    /**
+     * 字幕爬虫过滤器
+     */
+    private static BloomFilter subtitleFilter = null;
     private static SearchHistoryService searchHistoryService = SpringContextHolder.getBean(SearchHistoryService.class);
     private static SubtitleService subtitleService = SpringContextHolder.getBean(SubtitleService.class);
 

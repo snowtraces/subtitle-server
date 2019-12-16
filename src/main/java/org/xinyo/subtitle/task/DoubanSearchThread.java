@@ -1,6 +1,5 @@
 package org.xinyo.subtitle.task;
 
-import org.xinyo.subtitle.entity.douban.SearchHistory;
 import org.xinyo.subtitle.entity.douban.Subject;
 import org.xinyo.subtitle.entity.douban.vo.SearchResultVO;
 import org.xinyo.subtitle.service.DouBanApiService;
@@ -14,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class DoubanSearchThread implements Runnable, Serializable {
     private DouBanApiService douBanApiService = SpringContextHolder.getBean(DouBanApiService.class);
-    private SubjectService subjectServcie = SpringContextHolder.getBean(SubjectService.class);
+    private SubjectService subjectService = SpringContextHolder.getBean(SubjectService.class);
     private SearchHistoryService searchHistoryService = SpringContextHolder.getBean(SearchHistoryService.class);
 
     private final static int count = 20;
@@ -58,7 +57,7 @@ public class DoubanSearchThread implements Runnable, Serializable {
                 .collect(Collectors.toList());
 
         // 1. 保存结果
-        subjectServcie.save(subjects);
+        subjectService.save(subjects);
 
         // 2. 发起海报和详情线程
         subjects.forEach(s ->{
