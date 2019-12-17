@@ -100,6 +100,8 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
         if (!needUpdate) {
             // a 查询本地
             QueryWrapper<Subject> wrapper = new QueryWrapper<>();
+            wrapper.select("id", "title", "original_title", "year", "aka", "img_id", "countries",
+                    "rating", "genres", "genres", "casts", "directors");
             wrapper.like("title", title)
                     .or().like("original_title", title)
                     .or().like("aka", title)

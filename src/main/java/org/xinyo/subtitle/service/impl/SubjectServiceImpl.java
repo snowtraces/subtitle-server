@@ -41,12 +41,14 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
     @Override
     public List<Subject> getTopBySize(int size) {
         // movie
-        QueryWrapper movieWrapper = buildWrapper(size);
+        QueryWrapper movieWrapper = buildWrapper(size / 2);
+        movieWrapper.select("id", "title", "img_id", "rating");
         movieWrapper.eq("subtype", "movie");
         List<Subject> movies = super.list(movieWrapper);
 
         // tv
-        QueryWrapper tvWrapper = buildWrapper(size);
+        QueryWrapper tvWrapper = buildWrapper(size / 4);
+        tvWrapper.select("id", "title", "img_id", "rating");
         tvWrapper.eq("subtype", "tv");
         List<Subject> tvs = super.list(tvWrapper);
         movies.addAll(tvs);
@@ -58,7 +60,7 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
         QueryWrapper<Subject> wrapper = new QueryWrapper<>();
         wrapper.gt("ratings_count", 10000);
         wrapper.orderByDesc("rating");
-        wrapper.last("limit " + size/2);
+        wrapper.last("limit " + size);
 
         return wrapper;
     }
