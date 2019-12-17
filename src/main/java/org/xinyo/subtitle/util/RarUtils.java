@@ -5,7 +5,6 @@ import org.xinyo.subtitle.entity.SubtitleFile;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,8 +19,11 @@ public class RarUtils {
     private static List<String> subtitleSuffixList = Arrays.asList("srt", "ass", "txt");
 
 
-    private static String WIN_RAR_PATH
-            = "C:\\Users\\CHENG\\CODE\\Projects\\subtitle_server\\src\\main\\resources\\rar\\win\\UnRAR.exe";
+    private static String WIN_RAR_PATH;
+
+    public static void initRarPath(String rarPath) {
+        RarUtils.WIN_RAR_PATH = rarPath;
+    }
 
     public static List<SubtitleFile> getFileList(String file) {
         File rarFile = new File(file);
@@ -128,4 +130,6 @@ public class RarUtils {
         List<SubtitleFile> fileList = getFileList(file);
         System.err.println(fileList);
     }
+
+
 }
