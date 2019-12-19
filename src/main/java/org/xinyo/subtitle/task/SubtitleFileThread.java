@@ -35,7 +35,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
     private String subtitleId;
     private String basePath;
     private List<String> packageSuffixList = Arrays.asList("zip", "rar", "7z");
-    private List<String> subtitleSuffixList = Arrays.asList("srt", "ass", "txt");
+    private List<String> subtitleSuffixList = Arrays.asList("srt", "ass", "ssa", "txt");
 
     public SubtitleFileThread(String subtitleId, String basePath) {
         this.subtitleId = subtitleId;

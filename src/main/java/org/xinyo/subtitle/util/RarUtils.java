@@ -16,7 +16,7 @@ public class RarUtils {
 
     private static final int TOP_REMOVE_LINE = 8;
     private static final int MAX_LINE = 30 + TOP_REMOVE_LINE + 1;
-    private static List<String> subtitleSuffixList = Arrays.asList("srt", "ass", "txt");
+    private static List<String> subtitleSuffixList = Arrays.asList("srt", "ass", "ssa", "txt");
 
 
     private static String WIN_RAR_PATH;
