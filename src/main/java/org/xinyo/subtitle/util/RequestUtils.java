@@ -70,7 +70,13 @@ public class RequestUtils {
 
             savePath += File.separator + fileName;
             File file = new File(savePath);
-            if (!file.exists()) {
+            if (file.exists() && file.length() > 0) {
+                log.info("文件已存在，不重复下载");
+            } else {
+                if (file.exists()) {
+                    file.delete();
+                }
+
                 FileOutputStream outputStream = new FileOutputStream(file);
                 InputStream in = request(url);
                 // 失败重试一次
@@ -82,9 +88,8 @@ public class RequestUtils {
                 }
                 ByteStreams.copy(in, outputStream);
                 outputStream.close();
-            } else {
-                log.info("文件已存在，不重复下载");
             }
+
         } catch (Exception e) {
             e.printStackTrace();
             return false;
