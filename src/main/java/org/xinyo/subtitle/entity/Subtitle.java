@@ -33,6 +33,8 @@ public class Subtitle {
     private String currentEpisode;
     private String currentSeason;
 
+    private long downloadTimes;
+
     public Subtitle(){}
     public Subtitle(SubtitleVO subtitleVO) {
         BeanUtils.copyProperties(subtitleVO, this);

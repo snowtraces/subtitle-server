@@ -21,4 +21,5 @@ public interface SubtitleService extends IService<Subtitle> {
 
     String getSubjectIdById(String subtitleId);
 
+    boolean plusDownloadTimes(String subtitleId);
 }

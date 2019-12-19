@@ -87,4 +87,9 @@ public class RestController {
         return subtitleFiles;
     }
 
+    @RestMapping("/api/doDownload")
+    public Object doDownload(@Param("subtitleId")String subtitleId) {
+        return subtitleService.plusDownloadTimes(subtitleId);
+    }
+
 }

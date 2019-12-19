@@ -98,6 +98,12 @@ public class SubtitleServiceImpl extends ServiceImpl<SubtitleMapper, Subtitle> i
         return one == null ? null : one.getSubjectId();
     }
 
+    @Override
+    public boolean plusDownloadTimes(String subtitleId) {
+        baseMapper.plusDownloadTimes(subtitleId);
+        return true;
+    }
+
     private int[] buildTime(String line){
 
         line = line.replaceAll(timeRegex, "$1#$2");
