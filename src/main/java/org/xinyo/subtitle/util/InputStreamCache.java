@@ -41,7 +41,6 @@ public class InputStreamCache {
                 }
             }
             byteArrayOutputStream.flush();
-            inputStream.close();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
