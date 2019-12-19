@@ -33,6 +33,7 @@ public class SpiderServiceImpl implements SpiderService {
 
 
     Pattern subtitleInfoPattern = Pattern.compile("<div class=\"b\">字幕信息</div>[^`]*?</div>");
+    Pattern subtitleRemarkPattern = Pattern.compile("<div class=\"b\">字幕说明</div>([^`]*?)</div>");
     Pattern movieLinkPattern = Pattern.compile("=\"dt_edition\"><a href=\"/ar0/(\\d+)\"");
     Pattern searchLinkPattern = Pattern.compile("=\"d_title\"><a href=\"/ar0/(\\d+)\"");
 
@@ -91,6 +92,18 @@ public class SpiderServiceImpl implements SpiderService {
                 subtitleVO.setLanguage(extraAttr(info, "语言：", "<br>"));
                 subtitleVO.setType(extraAttr(info, "来源：", "<br>"));
                 subtitleVO.setVersion(extraAttr(info, "字幕版本：", "<br>"));
+            }
+
+            // 字幕说明
+            Matcher remarkMatcher = subtitleRemarkPattern.matcher(subText);
+            if (remarkMatcher.find()) {
+                String remark = remarkMatcher.group(1);
+                remark = remark.trim()
+                        .replaceAll("(\\n|\\t|<br />)+", "\n");
+                if (remark.length() > 255) {
+                    remark = remark.substring(0, 255);
+                }
+                subtitleVO.setRemark(remark);
             }
 
             log.info(subtitleVO);
