@@ -3,10 +3,12 @@ package org.xinyo.subtitle.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.xinyo.subtitle.entity.SRTSubtitleUnit;
 import org.xinyo.subtitle.entity.Subtitle;
 import org.xinyo.subtitle.mapper.SubtitleMapper;
+import org.xinyo.subtitle.service.SubjectService;
 import org.xinyo.subtitle.service.SubtitleService;
 
 import java.util.ArrayList;
@@ -16,6 +18,9 @@ import java.util.List;
 public class SubtitleServiceImpl extends ServiceImpl<SubtitleMapper, Subtitle> implements SubtitleService {
     String numberRegex = "^\\d+$";
     String timeRegex = "(^\\d{2}:\\d{2}:\\d{2},\\d{3})[^0-9]+(\\d{2}:\\d{2}:\\d{2},\\d{3}$)";
+
+    @Autowired
+    private SubjectService subjectService;
 
     @Override
     public List<SRTSubtitleUnit> readSubtitle(List<String> lines) {
@@ -101,6 +106,7 @@ public class SubtitleServiceImpl extends ServiceImpl<SubtitleMapper, Subtitle> i
     @Override
     public boolean plusDownloadTimes(String subtitleId) {
         baseMapper.plusDownloadTimes(subtitleId);
+        subjectService.plusDownloadTimesBySubtitleId(subtitleId);
         return true;
     }
 

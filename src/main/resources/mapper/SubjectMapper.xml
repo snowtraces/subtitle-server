@@ -1,4 +1,35 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="org.xinyo.subtitle.mapper.SubjectMapper">
+    <update id="plusDownloadTimesBySubtitleId">
+        update douban_subject set download_times = ifnull(download_times, 0) + 1
+        where id = (select subject_id from subtitle where id = #{subtitleId})
+    </update>
+    <select id="listHot" resultType="org.xinyo.subtitle.entity.douban.Subject">
+        (
+            SELECT
+                id, title, img_id, rating
+            FROM
+                douban_subject
+            WHERE
+                ratings_count > 10000
+                AND subtype = 'movie'
+            ORDER BY download_times desc,
+                rating DESC
+                LIMIT 16
+        )
+        union all
+        (
+            SELECT
+                id, title, img_id, rating
+            FROM
+                douban_subject
+            WHERE
+                ratings_count > 10000
+                AND subtype = 'tv'
+            ORDER BY download_times desc,
+                rating DESC
+                LIMIT 8
+        )
+    </select>
 </mapper>

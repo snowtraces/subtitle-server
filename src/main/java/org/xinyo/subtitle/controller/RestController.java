@@ -11,6 +11,7 @@ import org.xinyo.subtitle.service.DouBanApiService;
 import org.xinyo.subtitle.service.SubjectService;
 import org.xinyo.subtitle.service.SubtitleFileService;
 import org.xinyo.subtitle.service.SubtitleService;
+import org.xinyo.subtitle.util.HotSubjectCache;
 
 import java.util.List;
 
@@ -67,7 +68,8 @@ public class RestController {
 
     @RestMapping("/api/listTopMovies")
     public Object listTopMovies(){
-        return subjectService.getTopBySize(32);
+        return HotSubjectCache.getInstance().getHotList();
+//        return subjectService.getTopBySize(32);
     }
 
     @RestMapping("/api/listSubtitles")

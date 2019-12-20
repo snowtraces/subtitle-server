@@ -15,4 +15,8 @@ public interface SubjectService {
     boolean saveDetail(SubjectVO subjectVO);
 
     Subject getBySubtitleId(String subtitleId);
+
+    void plusDownloadTimesBySubtitleId(String subtitleId);
+
+    List<Subject> listHot();
 }

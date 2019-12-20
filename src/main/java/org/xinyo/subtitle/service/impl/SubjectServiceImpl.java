@@ -79,7 +79,7 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
     @Transactional
     public boolean saveDetail(SubjectVO subjectVO) {
         Subject subject = new Subject(subjectVO);
-        return super.updateById(subject);
+        return super.saveOrUpdate(subject);
     }
 
     @Override
@@ -87,5 +87,15 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
         String subjectId = subtitleService.getSubjectIdById(subtitleId);
 
         return super.getById(subjectId);
+    }
+
+    @Override
+    public void plusDownloadTimesBySubtitleId(String subtitleId) {
+        baseMapper.plusDownloadTimesBySubtitleId(subtitleId);
+    }
+
+    @Override
+    public List<Subject> listHot() {
+        return baseMapper.listHot();
     }
 }

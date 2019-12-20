@@ -36,6 +36,7 @@ public class Subject {
     private String directors;
 
     private String summary;
+    private long downloadTimes;
 
     public Subject(){}
     public Subject(SubjectVO subjectVO){
