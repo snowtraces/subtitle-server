@@ -19,4 +19,7 @@ public interface SubjectService {
     void plusDownloadTimesBySubtitleId(String subtitleId);
 
     List<Subject> listHot();
+
+    String getSubtypeById(String subjectId);
+
 }

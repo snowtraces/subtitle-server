@@ -74,7 +74,8 @@ public class RestController {
 
     @RestMapping("/api/listSubtitles")
     public Object listSubtitles(@Param("id")String id) {
-        List<Subtitle> list = subtitleService.listBySubjectId(id);
+        List<Subtitle> list = subtitleService.listWithWeightBySubjectId(id);
+//        List<Subtitle> list = subtitleService.listBySubjectId(id);
         return list;
     }
 

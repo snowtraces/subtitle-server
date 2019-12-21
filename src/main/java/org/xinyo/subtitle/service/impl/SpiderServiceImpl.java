@@ -14,6 +14,7 @@ import org.xinyo.subtitle.service.SubtitleService;
 import org.xinyo.subtitle.util.BloomFilterUtils;
 import org.xinyo.subtitle.util.FileUtils;
 import org.xinyo.subtitle.util.RequestUtils;
+import org.xinyo.subtitle.util.WeightUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -78,7 +79,7 @@ public class SpiderServiceImpl implements SpiderService {
             if (Strings.isNullOrEmpty(title)) {
                 title = null;
             }
-            subtitleVO.setTitle(normalizeText(title))   ;
+            subtitleVO.setTitle(normalizeText(title));
             subtitleVO.setSource("subhd");
             subtitleVO.setCurrentSeason(extraAttr(subText, "<div class=\"tvlabel\">S", "E\\d+</div>"));
             subtitleVO.setCurrentEpisode(extraAttr(subText, "<div class=\"tvlabel\">S\\d+E", "</div>"));
@@ -99,7 +100,8 @@ public class SpiderServiceImpl implements SpiderService {
             if (remarkMatcher.find()) {
                 String remark = remarkMatcher.group(1);
                 remark = remark.trim()
-                        .replaceAll("(\\n|\\t|<br />)+", "\n");
+                        .replaceAll("(\\n|\\t|<br />)+", "\n")
+                        .replaceAll("(\\s?\\n\\s?)+", "\n");
                 if (remark.length() > 255) {
                     remark = remark.substring(0, 255);
                 }
@@ -108,15 +110,15 @@ public class SpiderServiceImpl implements SpiderService {
 
             log.info(subtitleVO);
 
-        // 3. 请求字幕地址
+            // 3. 请求字幕地址
             String token = subtitleVO.getToken();
             String id = subtitleVO.getSourceId();
 
             String url = "https://subhd.tv/ajax/down_ajax";
 
             List<String> params = new ArrayList<>();
-            params.add("sub_id:" + id );
-            params.add("dtoken:" + token );
+            params.add("sub_id:" + id);
+            params.add("dtoken:" + token);
 
             List<String> headers = new ArrayList<>();
             headers.add("Host:subhd.tv");
@@ -159,6 +161,11 @@ public class SpiderServiceImpl implements SpiderService {
             BloomFilterUtils.pushSubtitle(subtitleVO.getSubjectId() + subtitleVO.getSourceId());
             subtitle.setFileName(fileName);
             subtitle.setSourceFileName(sourceFileName);
+            subtitle.setWeight(WeightUtils.getWeight(
+                    subtitle.getVersion(),
+                    subtitle.getTitle(),
+                    subtitle.getSourceFileName()
+            ));
 
             subtitleService.add(subtitle);
         }
@@ -190,7 +197,7 @@ public class SpiderServiceImpl implements SpiderService {
         // 2. 添加搜索数据
         if (subList.size() < 10) {
             String searchPath = null;
-            String keyword = subject.getTitle().replaceAll("[()]", " ") + " " + subject.getYear();
+            String keyword = subject.getTitle().replaceAll("[(),]", " ") + " " + subject.getYear();
             try {
                 searchPath = String.format(SUBTITLE_SEARCH_PATH,
                         URLEncoder.encode(keyword, "utf8").replaceAll("\\+", "%20"));
@@ -212,7 +219,7 @@ public class SpiderServiceImpl implements SpiderService {
         }
         if (subList.size() < 5) {
             String searchPath = null;
-            String keyword = subject.getOriginalTitle().replaceAll("[()]", " ") + " " + subject.getYear();
+            String keyword = subject.getOriginalTitle().replaceAll("[(),]", " ") + " " + subject.getYear();
             try {
                 searchPath = String.format(SUBTITLE_SEARCH_PATH,
                         URLEncoder.encode(keyword, "utf8").replaceAll("\\+", "%20"));
@@ -249,7 +256,7 @@ public class SpiderServiceImpl implements SpiderService {
 
     private String extraAttr(String source, String start, String end) {
         Matcher matcher = Pattern.compile(start + "(.*?)" + end).matcher(source);
-        if(matcher.find()) {
+        if (matcher.find()) {
             return normalizeText(matcher.group(1));
         }
         return null;

@@ -22,4 +22,8 @@ public interface SubtitleService extends IService<Subtitle> {
     String getSubjectIdById(String subtitleId);
 
     boolean plusDownloadTimes(String subtitleId);
+
+    void updateWeight(String subtitleId, List<String> fileNameList);
+
+    List<Subtitle> listWithWeightBySubjectId(String id);
 }

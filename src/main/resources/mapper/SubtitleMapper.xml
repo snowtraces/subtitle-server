@@ -5,4 +5,10 @@
         update subtitle set download_times = ifnull(download_times, 0) + 1
         where id = #{subtitleId}
     </update>
+    <select id="listMovieWithWeightBySubjectId" resultType="org.xinyo.subtitle.entity.Subtitle">
+        select * from subtitle sbt
+        where sbt.subject_id = #{subjectId}
+        order by sbt.weight asc
+        limit 8
+    </select>
 </mapper>

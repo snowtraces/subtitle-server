@@ -34,6 +34,7 @@ public class Subtitle {
     private String currentSeason;
 
     private long downloadTimes;
+    private Integer weight;
 
     public Subtitle(){}
     public Subtitle(SubtitleVO subtitleVO) {

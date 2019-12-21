@@ -10,6 +10,7 @@ import org.xinyo.subtitle.entity.Subtitle;
 import org.xinyo.subtitle.mapper.SubtitleMapper;
 import org.xinyo.subtitle.service.SubjectService;
 import org.xinyo.subtitle.service.SubtitleService;
+import org.xinyo.subtitle.util.WeightUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,7 +111,30 @@ public class SubtitleServiceImpl extends ServiceImpl<SubtitleMapper, Subtitle> i
         return true;
     }
 
-    private int[] buildTime(String line){
+    @Override
+    public void updateWeight(String subtitleId, List<String> fileNameList) {
+        Subtitle subtitle = new Subtitle();
+        subtitle.setId(subtitleId);
+        subtitle.setWeight(WeightUtils.getWeight(fileNameList));
+
+        super.updateById(subtitle);
+    }
+
+    @Override
+    public List<Subtitle> listWithWeightBySubjectId(String subjectId) {
+        // 1. 判断movie/tv
+        String subtype = subjectService.getSubtypeById(subjectId);
+
+        // 2. 根据类型查询
+        if ("movie".equals(subtype)) {
+            return baseMapper.listMovieWithWeightBySubjectId(subjectId);
+        } else {
+            // TODO tv权重过滤逻辑
+            return listBySubjectId(subjectId);
+        }
+    }
+
+    private int[] buildTime(String line) {
 
         line = line.replaceAll(timeRegex, "$1#$2");
         String[] split = line.split("#");
@@ -123,14 +147,14 @@ public class SubtitleServiceImpl extends ServiceImpl<SubtitleMapper, Subtitle> i
         return new int[]{start, end};
     }
 
-    private int calcTime(String time){
+    private int calcTime(String time) {
         String[] split = time.split("[:,]");
         int hour = Integer.parseInt(split[0]);
         int min = Integer.parseInt(split[1]);
         int sec = Integer.parseInt(split[2]);
         int mill = Integer.parseInt(split[3]);
 
-        int t = hour * 60 * 60 * 1000 + min * 60 * 1000 + sec * 1000 + mill ;
+        int t = hour * 60 * 60 * 1000 + min * 60 * 1000 + sec * 1000 + mill;
         return t;
     }
 }

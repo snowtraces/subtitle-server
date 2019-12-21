@@ -98,4 +98,14 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
     public List<Subject> listHot() {
         return baseMapper.listHot();
     }
+
+    @Override
+    public String getSubtypeById(String subjectId) {
+        QueryWrapper<Subject> wrapper = new QueryWrapper<>();
+        wrapper.select("subtype");
+        wrapper.eq("id", subjectId);
+
+        Subject one = super.getOne(wrapper);
+        return one.getSubtype();
+    }
 }

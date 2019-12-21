@@ -13,13 +13,11 @@ import org.xinyo.subtitle.entity.Subtitle;
 import org.xinyo.subtitle.entity.SubtitleFile;
 import org.xinyo.subtitle.service.SubtitleFileService;
 import org.xinyo.subtitle.service.SubtitleService;
-import org.xinyo.subtitle.util.FileUtils;
-import org.xinyo.subtitle.util.InputStreamCache;
-import org.xinyo.subtitle.util.RarUtils;
-import org.xinyo.subtitle.util.SpringContextHolder;
+import org.xinyo.subtitle.util.*;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -34,6 +32,8 @@ public class SubtitleFileThread implements Runnable, Serializable {
 
     private String subtitleId;
     private String basePath;
+    private Subtitle subtitle;
+    private List<String> fileNameList = new ArrayList<>();
     private List<String> packageSuffixList = Arrays.asList("zip", "rar", "7z");
     private List<String> subtitleSuffixList = Arrays.asList("srt", "ass", "ssa", "txt");
 
@@ -49,6 +49,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
         if (subtitle == null) {
             return;
         }
+        this.subtitle = subtitle;
 
         // 2. 读取字幕
         String fileName = subtitle.getFileName();
@@ -75,6 +76,14 @@ public class SubtitleFileThread implements Runnable, Serializable {
             default:
                 break;
         }
+
+        // 4. 更新字幕权重
+        if (fileNameList.size() > 0
+                && subtitle.getWeight() != null
+                && subtitle.getWeight() == WeightUtils.DEFAULT_WEIGHT) {
+            subtitleService.updateWeight(subtitleId, fileNameList);
+        }
+
     }
 
 
@@ -191,7 +200,6 @@ public class SubtitleFileThread implements Runnable, Serializable {
                 long size = ze.getSize();
 
                 trySaveSubtitleFile(fileIdx, fileName, size, () -> inputStream);
-
                 fileIdx++;
             }
         } catch (Exception e) {
@@ -228,6 +236,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
                 content = cache.getFixedLines(MAX_LINE);
             }
 
+            fileNameList.add(fileName);
             saveSubtitleFile(fileIdx, fileName, String.valueOf(size), content);
         } catch (Exception e) {
             e.printStackTrace();
