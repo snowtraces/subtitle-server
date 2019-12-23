@@ -196,49 +196,18 @@ public class SpiderServiceImpl implements SpiderService {
 
         // 2. 添加搜索数据
         if (subList.size() < 10) {
-            String searchPath = null;
             String keyword = subject.getTitle().replaceAll("[(),]", " ") + " " + subject.getYear();
-            try {
-                searchPath = String.format(SUBTITLE_SEARCH_PATH,
-                        URLEncoder.encode(keyword, "utf8").replaceAll("\\+", "%20"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            movieText = RequestUtils.requestText(searchPath);
-            if (Strings.isNullOrEmpty(movieText)) {
-                movieText = RequestUtils.requestText(searchPath);
-            }
-            if (!Strings.isNullOrEmpty(movieText)) {
-                Matcher matcher = searchLinkPattern.matcher(movieText);
-                while (matcher.find()) {
-                    subList.add(matcher.group(1));
-                }
-            } else {
-                log.error("无法访问字幕搜索页面：" + keyword);
-            }
+            doSearchByKeyword(keyword, subList);
         }
         if (subList.size() < 5) {
-            String searchPath = null;
             String keyword = subject.getOriginalTitle().replaceAll("[(),]", " ") + " " + subject.getYear();
-            try {
-                searchPath = String.format(SUBTITLE_SEARCH_PATH,
-                        URLEncoder.encode(keyword, "utf8").replaceAll("\\+", "%20"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            movieText = RequestUtils.requestText(searchPath);
-            if (Strings.isNullOrEmpty(movieText)) {
-                movieText = RequestUtils.requestText(searchPath);
-            }
-            if (!Strings.isNullOrEmpty(movieText)) {
-                Matcher matcher = searchLinkPattern.matcher(movieText);
-                while (matcher.find()) {
-                    subList.add(matcher.group(1));
-                }
-            } else {
-                log.error("无法访问字幕搜索页面：" + keyword);
-            }
+            doSearchByKeyword(keyword, subList);
         }
+        if (subList.size() < 5) {
+            String keyword = subject.getOriginalTitle().replaceAll("[(),]", " ") + " ";
+            doSearchByKeyword(keyword, subList);
+        }
+
 
         // 3. 去重
         subList = subList.stream()
@@ -252,6 +221,28 @@ public class SpiderServiceImpl implements SpiderService {
         }
 
         return subList;
+    }
+
+    private void doSearchByKeyword(String keyword, List<String> subList) {
+        try {
+            String searchPath = String.format(SUBTITLE_SEARCH_PATH,
+                    URLEncoder.encode(keyword, "utf8").replaceAll("\\+", "%20"));
+
+            String movieText = RequestUtils.requestText(searchPath);
+            if (Strings.isNullOrEmpty(movieText)) {
+                movieText = RequestUtils.requestText(searchPath);
+            }
+            if (!Strings.isNullOrEmpty(movieText)) {
+                Matcher matcher = searchLinkPattern.matcher(movieText);
+                while (matcher.find()) {
+                    subList.add(matcher.group(1));
+                }
+            } else {
+                log.error("无法访问字幕搜索页面：" + keyword);
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     private String extraAttr(String source, String start, String end) {
