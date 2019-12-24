@@ -107,7 +107,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
                     .or().like("aka", title)
                     .or().like("casts", title)
                     .or().like("directors", title);
-            wrapper.orderByDesc("rating");
+            wrapper.orderByDesc("ratings_count", "rating");
             wrapper.last("limit 10");
             subjects = super.list(wrapper);
             searchHistoryService.timesIncr(title);

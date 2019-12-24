@@ -12,7 +12,7 @@
             FROM
                 douban_subject
             WHERE
-                ratings_count > 10000
+                ratings_count > 1000
                 AND subtype = 'movie'
             ORDER BY download_times desc,
                 rating DESC
@@ -25,7 +25,7 @@
             FROM
                 douban_subject
             WHERE
-                ratings_count > 10000
+                ratings_count > 1000
                 AND subtype = 'tv'
             ORDER BY download_times desc,
                 rating DESC
