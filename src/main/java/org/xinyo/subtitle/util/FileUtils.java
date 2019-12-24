@@ -79,7 +79,7 @@ public class FileUtils {
          */
         String name = file.getName();
         String suffix = Files.getFileExtension(name);
-        if (suffix != null && Arrays.asList(textSuffix).contains(suffix)) {
+        if (Arrays.asList(textSuffix).contains(suffix)) {
             return true;
         }
 
@@ -110,7 +110,7 @@ public class FileUtils {
 
     public static boolean isSubtitle(File file) {
         String suffix = Files.getFileExtension(file.getName());
-        if (suffix != null && Arrays.asList(subtitleSuffix).contains(suffix)) {
+        if (Arrays.asList(subtitleSuffix).contains(suffix)) {
             return true;
         }
         return false;

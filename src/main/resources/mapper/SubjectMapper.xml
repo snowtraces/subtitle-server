@@ -8,11 +8,14 @@
     <select id="listHot" resultType="org.xinyo.subtitle.entity.douban.Subject">
         (
             SELECT
-                id, title, img_id, rating
+                id, title, img_id, rating, download_times
             FROM
                 douban_subject
             WHERE
-                ratings_count > 1000
+                (
+                    (ratings_count > 1000 and download_times > 0)
+                    or ratings_count > 5000
+                )
                 AND subtype = 'movie'
             ORDER BY download_times desc,
                 rating DESC
@@ -21,11 +24,14 @@
         union all
         (
             SELECT
-                id, title, img_id, rating
+                id, title, img_id, rating, download_times
             FROM
                 douban_subject
             WHERE
-                ratings_count > 1000
+                (
+                    (ratings_count > 1000 and download_times > 0)
+                    or ratings_count > 5000
+                )
                 AND subtype = 'tv'
             ORDER BY download_times desc,
                 rating DESC

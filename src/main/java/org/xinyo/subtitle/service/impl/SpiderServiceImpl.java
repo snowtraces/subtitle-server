@@ -21,17 +21,21 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.xinyo.subtitle.util.RequestUtils.tryRequest;
+
 @Service
 @Log4j2
 public class SpiderServiceImpl implements SpiderService {
+    private static final int RETRY_TIMES = 1;
+
     private static final String SUBTITLE_SEARCH_PATH = "https://subhd.tv/search0/%s";
     private static final String SUBTITLE_PATH = "https://subhd.tv/ar0/%s";
     private static final String MOVIE_PATH = "https://subhd.tv/do0/%s";
-
 
     Pattern subtitleInfoPattern = Pattern.compile("<div class=\"b\">字幕信息</div>[^`]*?</div>");
     Pattern subtitleRemarkPattern = Pattern.compile("<div class=\"b\">字幕说明</div>([^`]*?)</div>");
@@ -44,6 +48,7 @@ public class SpiderServiceImpl implements SpiderService {
 
     @Autowired
     private SubtitleService subtitleService;
+
 
     @Override
     public void doCrawl(Subject subject) {
@@ -58,26 +63,17 @@ public class SpiderServiceImpl implements SpiderService {
         for (String subtitleId : subList) {
             // 2. 请求字幕页面
             String subPath = String.format(SUBTITLE_PATH, subtitleId);
-            String subText = RequestUtils.requestText(subPath);
-
-            if (Strings.isNullOrEmpty(subText)) {
-                subText = RequestUtils.requestText(subPath);
-                if (Strings.isNullOrEmpty(subText)) {
-                    log.error("无法访问字幕页面");
-                    continue;
-                }
+            String subText = tryRequest(() -> RequestUtils.requestText(subPath), "字幕页面请求失败");
+            if (subText == null) {
+                continue;
             }
 
             SubtitleVO subtitleVO = new SubtitleVO();
             subtitleVO.setSourceId(subtitleId);
 
             String title = extraAttr(subText, "<h2><div[^<]*</div>", "</h2>");
-
             if (Strings.isNullOrEmpty(title)) {
                 title = extraAttr(subText, "<h1><div[^<]*</div>", "</h1>");
-            }
-            if (Strings.isNullOrEmpty(title)) {
-                title = null;
             }
             subtitleVO.setTitle(normalizeText(title));
             subtitleVO.setSource("subhd");
@@ -105,7 +101,7 @@ public class SpiderServiceImpl implements SpiderService {
                 if (remark.length() > 255) {
                     remark = remark.substring(0, 255);
                 }
-                subtitleVO.setRemark(remark);
+                subtitleVO.setRemark(normalizeText(remark));
             }
 
             log.info(subtitleVO);
@@ -124,22 +120,17 @@ public class SpiderServiceImpl implements SpiderService {
             headers.add("Host:subhd.tv");
             headers.add("Origin:https://subhd.tv");
 
-            String s = RequestUtils.requestText(url, params, headers); // {"success":true,"url":"http:\/\/dl1.subhd.com\/sub\/2016\/05\/146418042012852.zip"}
-
-            if (Strings.isNullOrEmpty(s)) {
-                // 自动重试一次
-                s = RequestUtils.requestText(url, params, headers);
-                if (Strings.isNullOrEmpty(s)) {
-                    log.error("无法请求下载地址");
-                    continue;
-                }
+            String downloadInfo = tryRequest(
+                    () -> RequestUtils.requestText(url, params, headers), "请求字幕地址失败"
+            );
+            if (downloadInfo == null) {
+                continue;
             }
 
-            HashMap<String, String> downloadMap = new Gson().fromJson(s, HashMap.class);
+            HashMap<String, String> downloadMap = new Gson().fromJson(downloadInfo, HashMap.class);
             String downloadPath = downloadMap.get("url");
 
             log.info("下载地址：" + downloadPath);
-
 
             // 4. 下载保存文件
             Subtitle subtitle = new Subtitle(subtitleVO);
@@ -148,13 +139,11 @@ public class SpiderServiceImpl implements SpiderService {
             List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
 
             String path = FileUtils.createPath(basePath + "subtitles", idPath);
-            boolean isDownload = RequestUtils.fetchBinary(downloadPath, path, fileName);
+            boolean isDownload = tryRequest(
+                    () -> RequestUtils.fetchBinary(downloadPath, path, fileName), "字幕文件下载失败"
+            );
             if (!isDownload) {
-                isDownload = RequestUtils.fetchBinary(downloadPath, path, fileName);
-                if (!isDownload) {
-                    log.error("字幕下载失败……");
-                    continue;
-                }
+                continue;
             }
 
             // 5. 入库
@@ -168,6 +157,7 @@ public class SpiderServiceImpl implements SpiderService {
             ));
 
             subtitleService.add(subtitle);
+
         }
         log.info("完成下载字幕：[{}]", subject.getTitle());
     }
@@ -181,31 +171,28 @@ public class SpiderServiceImpl implements SpiderService {
 
         // 1. 直接访问
         String moviePath = String.format(MOVIE_PATH, subject.getId());
-        String movieText = RequestUtils.requestText(moviePath);
-        if (Strings.isNullOrEmpty(movieText)) {
-            movieText = RequestUtils.requestText(moviePath);
-        }
-        if (!Strings.isNullOrEmpty(movieText)) {
+        String movieText = tryRequest(() -> RequestUtils.requestText(moviePath), "无法访问movie页面");
+        if (movieText != null) {
             Matcher matcher = movieLinkPattern.matcher(movieText);
             while (matcher.find()) {
                 subList.add(matcher.group(1));
             }
-        } else {
-            log.error("无法访问movie页面");
         }
 
         // 2. 添加搜索数据
-        if (subList.size() < 10) {
-            String keyword = subject.getTitle().replaceAll("[(),]", " ") + " " + subject.getYear();
+        if (subList.size() < 5) {
+            String keyword = subject.getTitle().replaceAll("[(),/]", " ") + " " + subject.getYear();
             doSearchByKeyword(keyword, subList);
         }
         if (subList.size() < 5) {
-            String keyword = subject.getOriginalTitle().replaceAll("[(),]", " ") + " " + subject.getYear();
+            String keyword = subject.getOriginalTitle().replaceAll("[(),/]", " ") + " " + subject.getYear();
             doSearchByKeyword(keyword, subList);
         }
-        if (subList.size() < 5) {
-            String keyword = subject.getOriginalTitle().replaceAll("[(),]", " ") + " ";
-            doSearchByKeyword(keyword, subList);
+        if (subList.size() < 3) {
+            String keyword = subject.getOriginalTitle().replaceAll("[(),/]", " ") + " ";
+            if(keyword != null && keyword.length() > 24) {
+                doSearchByKeyword(keyword, subList);
+            }
         }
 
 
@@ -228,18 +215,15 @@ public class SpiderServiceImpl implements SpiderService {
             String searchPath = String.format(SUBTITLE_SEARCH_PATH,
                     URLEncoder.encode(keyword, "utf8").replaceAll("\\+", "%20"));
 
-            String movieText = RequestUtils.requestText(searchPath);
-            if (Strings.isNullOrEmpty(movieText)) {
-                movieText = RequestUtils.requestText(searchPath);
-            }
-            if (!Strings.isNullOrEmpty(movieText)) {
+            String movieText = tryRequest(() -> RequestUtils.requestText(searchPath), "无法搜索 - " + keyword);
+
+            if (movieText != null) {
                 Matcher matcher = searchLinkPattern.matcher(movieText);
                 while (matcher.find()) {
                     subList.add(matcher.group(1));
                 }
-            } else {
-                log.error("无法访问字幕搜索页面：" + keyword);
             }
+
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

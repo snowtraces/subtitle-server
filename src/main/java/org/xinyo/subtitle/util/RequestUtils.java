@@ -25,11 +25,29 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Log4j2
 public class RequestUtils {
-    static CookieStore cookieStore = new BasicCookieStore();
+    private static CookieStore cookieStore = new BasicCookieStore();
     private final static String USER_AGENT_CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36";
+
+    private static final int RETRY_TIMES = 1;
+
+    public static <T> T tryRequest(Supplier<T> supplier, String errorMsg) {
+        int tryTimes = 0;
+        T result = null;
+        while (tryTimes++ < RETRY_TIMES && result == null) {
+            if (tryTimes > 1) {
+                log.warn(">>>请求失败，正在重试");
+            }
+            result = supplier.get();
+        }
+        if (result == null) {
+            log.error("请求失败：{}", errorMsg);
+        }
+        return result;
+    }
 
     public static String requestText(String url) {
         InputStream inputStream = request(url);
@@ -57,12 +75,9 @@ public class RequestUtils {
         return fetchBinary(url, savePath, null);
     }
 
-    public static boolean fetchBinary(String url, String savePath, String fileName) {
+    public static boolean fetchBinary(String rawUrl, String savePath, String fileName) {
         try {
-            url = url.substring(0, url.lastIndexOf("/") + 1)
-                    + URLEncoder.encode(url.substring(url.lastIndexOf("/") + 1), "utf8")
-                    .replaceAll("\\+", "%20")
-                    .replaceAll("%3F", "?");
+            String url = urlEncode(rawUrl);
 
             if (Strings.isNullOrEmpty(fileName)) {
                 fileName = getFileNameFromUrl(url);
@@ -78,14 +93,11 @@ public class RequestUtils {
                 }
 
                 FileOutputStream outputStream = new FileOutputStream(file);
-                InputStream in = request(url);
-                // 失败重试一次
+                InputStream in = tryRequest(() -> request(url), "请求失败 - " + url);
                 if (in == null) {
-                    in = request(url);
-                    if (in == null) {
-                        log.error("请求失败");
-                    }
+                    return false;
                 }
+
                 ByteStreams.copy(in, outputStream);
                 outputStream.close();
             }
@@ -162,9 +174,7 @@ public class RequestUtils {
         CloseableHttpClient httpClient = getHttpClient();
         CloseableHttpResponse response = null;
         try {
-            URIBuilder builder = null;
-            builder = new URIBuilder(url);
-
+            URIBuilder builder = new URIBuilder(url);
             HttpPost httpPost = new HttpPost(builder.build());
 
             // form_data
@@ -227,6 +237,13 @@ public class RequestUtils {
                 .build();
 
         return httpClient;
+    }
+
+    private static String urlEncode(String url) throws UnsupportedEncodingException {
+        return url.substring(0, url.lastIndexOf("/") + 1)
+                + URLEncoder.encode(url.substring(url.lastIndexOf("/") + 1), "utf8")
+                .replaceAll("\\+", "%20")
+                .replaceAll("%3F", "?");
     }
 
 
