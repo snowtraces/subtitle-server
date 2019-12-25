@@ -8,6 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.xinyo.subtitle.netty.HttpServer;
 import org.xinyo.subtitle.util.BloomFilterUtils;
+import org.xinyo.subtitle.util.FileUtils;
 import org.xinyo.subtitle.util.RarUtils;
 
 @SpringBootApplication
@@ -18,6 +19,9 @@ public class SubtitleServerApplication implements CommandLineRunner {
 
     @Value("${custom.rarPath}")
     private String rarPath;
+
+    @Value("${custom.basePath}")
+    private String basePath;
 
     @Autowired
     public SubtitleServerApplication(HttpServer httpServer) {
@@ -31,7 +35,9 @@ public class SubtitleServerApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         BloomFilterUtils.initFilter();
-        RarUtils.initRarPath(rarPath);
+        RarUtils.WIN_RAR_PATH = rarPath;
+        FileUtils.basePath = basePath;
+
         httpServer.start();
     }
 }

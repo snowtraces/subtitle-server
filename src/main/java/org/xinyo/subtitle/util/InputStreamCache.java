@@ -6,6 +6,8 @@ import org.mozilla.universalchardet.UniversalDetector;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author CHENG
@@ -16,6 +18,8 @@ public class InputStreamCache {
      * 将InputStream中的字节保存到ByteArrayOutputStream中。
      */
     private ByteArrayOutputStream byteArrayOutputStream = null;
+
+    public long length;
 
     public InputStreamCache(InputStream inputStream) {
         this(inputStream, -1);
@@ -33,13 +37,13 @@ public class InputStreamCache {
             while ((len = inputStream.read(buffer)) > -1) {
                 byteArrayOutputStream.write(buffer, 0, len);
 
-                if (byteLimit != -1) {
-                    lengthCount += len;
-                    if (lengthCount > byteLimit) {
-                        break;
-                    }
+                lengthCount += len;
+                if (byteLimit != -1 && lengthCount > byteLimit) {
+                    break;
                 }
             }
+
+            this.length = lengthCount;
             byteArrayOutputStream.flush();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -81,22 +85,26 @@ public class InputStreamCache {
     }
 
     public String getFixedLines(int lineNumber) {
+        return String.join("\n", getFixedLineList(lineNumber));
+    }
+
+    public List<String> getFixedLineList(int lineNumber) {
         try {
-            StringBuilder builder = new StringBuilder();
             Charset charset = getCharset();
             BufferedReader br = new BufferedReader(
                     new InputStreamReader(getInputStream(), charset)
             );
             String line;
+            List<String> lineList = new ArrayList<>();
             int idx = 0;
             while (
                     (line = br.readLine()) != null
-                    && (lineNumber == -1 || idx < lineNumber)
+                            && (lineNumber == -1 || idx < lineNumber)
             ) {
                 idx++;
-                builder.append(line).append("\n");
+                lineList.add(line);
             }
-            return builder.toString();
+            return lineList;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -106,5 +114,10 @@ public class InputStreamCache {
     public String getAllLines() {
         return getFixedLines(-1);
     }
+
+    public List<String> getAllLineList() {
+        return getFixedLineList(-1);
+    }
+
 
 }

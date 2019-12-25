@@ -31,15 +31,13 @@ public class SubtitleFileThread implements Runnable, Serializable {
     private final int MAX_LINE = 30;
 
     private String subtitleId;
-    private String basePath;
     private Subtitle subtitle;
     private List<String> fileNameList = new ArrayList<>();
     private List<String> packageSuffixList = Arrays.asList("zip", "rar", "7z");
     private List<String> subtitleSuffixList = Arrays.asList("srt", "ass", "ssa", "txt");
 
-    public SubtitleFileThread(String subtitleId, String basePath) {
+    public SubtitleFileThread(String subtitleId) {
         this.subtitleId = subtitleId;
-        this.basePath = basePath;
     }
 
     @Override
@@ -59,7 +57,7 @@ public class SubtitleFileThread implements Runnable, Serializable {
         }
 
         List<String> idPath = FileUtils.separateString(subtitle.getSubjectId(), 1, 5);
-        String path = FileUtils.createPath(basePath + "subtitles", idPath);
+        String path = FileUtils.createPath(FileUtils.basePath + "subtitles", idPath);
         path += fileName;
 
         // 3. 解压生成详情
@@ -229,10 +227,13 @@ public class SubtitleFileThread implements Runnable, Serializable {
             fileName = getFileNameWithoutFolder(fileName);
             String suffix = getSuffix(fileName);
             String content = null;
-            if (size > 0 && suffix != null && subtitleSuffixList.indexOf(suffix) != -1) {
+            if (suffix != null && subtitleSuffixList.indexOf(suffix) != -1) {
                 // 缓存inputStream
                 InputStream inputStream = streamSupplier.get();
-                InputStreamCache cache = new InputStreamCache(inputStream, 1024);
+                InputStreamCache cache = new InputStreamCache(inputStream, Math.min(size, 1024));
+                if (size <= 0) {
+                    size = cache.length;
+                }
                 content = cache.getFixedLines(MAX_LINE);
             }
 

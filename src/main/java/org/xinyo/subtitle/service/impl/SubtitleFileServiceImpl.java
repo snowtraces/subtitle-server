@@ -17,8 +17,6 @@ import java.util.List;
  */
 @Service
 public class SubtitleFileServiceImpl extends ServiceImpl<SubtitleFileMapper, SubtitleFile> implements SubtitleFileService {
-    @Value("${custom.basePath}")
-    private String basePath;
 
     @Override
     public List<SubtitleFile> listBySubtitleId(String subtitleId) {
@@ -29,7 +27,13 @@ public class SubtitleFileServiceImpl extends ServiceImpl<SubtitleFileMapper, Sub
 
         if (list == null || list.isEmpty()) {
             // 文件为空，重新生成
-            SubtitleFileThreadPool.getInstance().submitTask(new SubtitleFileThread(subtitleId, basePath));
+            try {
+                SubtitleFileThreadPool.getInstance().submitTask(new SubtitleFileThread(subtitleId));
+                Thread.sleep(2000);
+                list = super.list(wrapper);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         return list;

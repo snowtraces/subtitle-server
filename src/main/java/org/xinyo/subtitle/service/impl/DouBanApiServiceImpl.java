@@ -41,9 +41,6 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
 
     private final SearchHistoryService searchHistoryService;
 
-    @Value("${custom.basePath}")
-    private String basePath;
-
     @Autowired
     public DouBanApiServiceImpl(SearchHistoryService searchHistoryService) {
         this.searchHistoryService = searchHistoryService;
@@ -81,7 +78,7 @@ public class DouBanApiServiceImpl extends ServiceImpl<SubjectMapper, Subject> im
         log.info("开始读取海报……[{}]", subject.getTitle());
         List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
 
-        String path = FileUtils.createPath(basePath + "poster", idPath);
+        String path = FileUtils.createPath(FileUtils.basePath + "poster", idPath);
         boolean isSuccess = RequestUtils.fetchBinary(url, path);
 
         return isSuccess;

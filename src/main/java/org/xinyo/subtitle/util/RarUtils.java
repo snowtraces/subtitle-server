@@ -18,12 +18,7 @@ public class RarUtils {
     private static final int MAX_LINE = 30 + TOP_REMOVE_LINE + 1;
     private static List<String> subtitleSuffixList = Arrays.asList("srt", "ass", "ssa", "txt");
 
-
-    private static String WIN_RAR_PATH;
-
-    public static void initRarPath(String rarPath) {
-        RarUtils.WIN_RAR_PATH = rarPath;
-    }
+    public static String WIN_RAR_PATH;
 
     public static List<SubtitleFile> getFileList(String file) {
         File rarFile = new File(file);
@@ -104,15 +99,15 @@ public class RarUtils {
             InputStream inputStream = proc.getInputStream();
 
             InputStreamCache cache = new InputStreamCache(inputStream, 1024);
-            String fixedLines = cache.getFixedLines(MAX_LINE);
-            String[] lineArray = fixedLines.split("\n");
+            List<String> lines = cache.getFixedLineList(MAX_LINE);
 
             StringBuilder builder = new StringBuilder();
-            for (int i = TOP_REMOVE_LINE; i < lineArray.length; i++) {
+            for (int i = TOP_REMOVE_LINE; i < lines.size(); i++) {
+                String line = lines.get(i);
                 if (i == TOP_REMOVE_LINE) {
-                    lineArray[i] = lineArray[i].substring(lineArray[i].indexOf("%") + 1);
+                    line = line.substring(line.indexOf("%") + 1);
                 }
-                builder.append(lineArray[i]).append("\n");
+                builder.append(line).append("\n");
             }
             return builder.toString();
         } catch (Exception e) {

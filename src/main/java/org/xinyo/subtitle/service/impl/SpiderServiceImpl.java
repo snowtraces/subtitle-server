@@ -42,13 +42,8 @@ public class SpiderServiceImpl implements SpiderService {
     Pattern movieLinkPattern = Pattern.compile("=\"dt_edition\"><a href=\"/ar0/(\\d+)\"");
     Pattern searchLinkPattern = Pattern.compile("=\"d_title\"><a href=\"/ar0/(\\d+)\"");
 
-
-    @Value("${custom.basePath}")
-    private String basePath;
-
     @Autowired
     private SubtitleService subtitleService;
-
 
     @Override
     public void doCrawl(Subject subject) {
@@ -138,7 +133,7 @@ public class SpiderServiceImpl implements SpiderService {
             String sourceFileName = RequestUtils.getFileNameFromUrl(downloadPath);
             List<String> idPath = FileUtils.separateString(subject.getId(), 1, 5);
 
-            String path = FileUtils.createPath(basePath + "subtitles", idPath);
+            String path = FileUtils.createPath(FileUtils.basePath + "subtitles", idPath);
             boolean isDownload = tryRequest(
                     () -> RequestUtils.fetchBinary(downloadPath, path, fileName), "字幕文件下载失败"
             );

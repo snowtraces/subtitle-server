@@ -14,9 +14,8 @@ import java.util.List;
 
 @Log4j2
 public class FileUtils {
-    private static String basePath = "/data/";
+    public static String basePath;
     private static String[] textSuffix = new String[]{"srt", "ass", "log", "text"};
-    private static String[] subtitleSuffix = new String[]{"srt", "ass"};
 
 
     public static String createPath(String basePath, List<String> idPath) {
@@ -108,14 +107,6 @@ public class FileUtils {
         return true;
     }
 
-    public static boolean isSubtitle(File file) {
-        String suffix = Files.getFileExtension(file.getName());
-        if (Arrays.asList(subtitleSuffix).contains(suffix)) {
-            return true;
-        }
-        return false;
-    }
-
     /**
      * 分割字符串
      *
@@ -130,21 +121,6 @@ public class FileUtils {
         }
 
         return list;
-    }
-
-
-    public static String readInputStream(InputStream inputStream, Charset charset) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
-            int i;
-            while ((i = inputStream.read()) != -1) {
-                outputStream.write(i);
-            }
-            return outputStream.toString(charset.name());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public static String getSuffix(String fileName) {

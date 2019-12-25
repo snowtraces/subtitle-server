@@ -1,6 +1,5 @@
 package org.xinyo.subtitle.netty;
 
-import com.google.common.io.Files;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
@@ -9,19 +8,11 @@ import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.xinyo.subtitle.entity.SRTSubtitleUnit;
-import org.xinyo.subtitle.entity.UploadFile;
 import org.xinyo.subtitle.netty.util.HttpUtils;
-import org.xinyo.subtitle.service.SubtitleService;
-import org.xinyo.subtitle.util.FileUtils;
-import org.xinyo.subtitle.util.SpringContextHolder;
+import org.xinyo.subtitle.util.SubtitleParseUtils;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
@@ -75,27 +66,12 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
             InterfaceHttpData data = httpDecoder.next();
             if (data != null && HttpDataType.FileUpload.equals(data.getHttpDataType())) {
                 final FileUpload fileUpload = (FileUpload) data;
-                UploadFile uploadFile = FileUtils.createFullPath(fileUpload.getFilename());
-                final File file = new File(uploadFile.getFullPath() + uploadFile.getFileName());
-                log.info("upload file: {}", file);
-                try (
-                    FileChannel inputChannel = new FileInputStream(fileUpload.getFile()).getChannel();
-                    FileChannel outputChannel = new FileOutputStream(file).getChannel()
-                ) {
-                    outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-
-                    if (FileUtils.isAsciiText(file)) {
-                        List<String> lines = Files.readLines(file, StandardCharsets.UTF_8);
-                        if (FileUtils.isSubtitle(file)) {
-                            SubtitleService subtitleService = SpringContextHolder.getBean(SubtitleService.class);
-                            List<SRTSubtitleUnit> list = subtitleService.readSubtitle(lines);
-                            HttpUtils.response(ctx, list, HttpResponseStatus.OK);
-                        } else {
-                            HttpUtils.response(ctx, lines, HttpResponseStatus.OK);
-                        }
-                    } else {
-                        HttpUtils.response(ctx, HttpResponseStatus.OK);
-                    }
+                try(FileInputStream fileInputStream = new FileInputStream(fileUpload.getFile());) {
+                    List<SRTSubtitleUnit> subtitleUnitList = SubtitleParseUtils.read(fileInputStream);
+                    HttpUtils.response(ctx, subtitleUnitList, HttpResponseStatus.OK);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    HttpUtils.response(ctx, HttpResponseStatus.OK);
                 }
             }
         }
