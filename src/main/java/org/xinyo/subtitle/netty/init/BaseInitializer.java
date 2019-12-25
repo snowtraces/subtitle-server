@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BaseInitializer {
-    private List<Class> controllerList = new ArrayList<>();
+    private final List<Class> controllerList = new ArrayList<>();
 
-    public BaseInitializer addController(Class clazz) {
+    public void addController(Class clazz) {
         controllerList.add(clazz);
-        return this;
     }
 
     public void init() {
         ControllerInitializer controllerInitializer = new ControllerInitializer();
-        controllerInitializer.add(controllerList).init();
+        controllerInitializer.add(controllerList);
+        controllerInitializer.init();
     }
 }

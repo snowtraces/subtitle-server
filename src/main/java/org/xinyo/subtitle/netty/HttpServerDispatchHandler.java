@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.xinyo.subtitle.netty.annotation.Param;
 import org.xinyo.subtitle.netty.init.ControllerInitializer;
+import org.xinyo.subtitle.netty.util.ExecuteTarget;
 import org.xinyo.subtitle.netty.util.HttpUtils;
 import org.xinyo.subtitle.netty.util.RequestParam;
 import org.xinyo.subtitle.util.SpringContextHolder;
@@ -31,20 +32,19 @@ public class HttpServerDispatchHandler {
 
         RequestParam params = HttpUtils.extractRequestParams(request);
 
-        log.debug(params.toString());
+        log.info(params.toString());
 
         try {
             String uri = params.getUri();
-            Map<String, Object[]> mappingMap = ControllerInitializer.getMappingMap();
-            if (mappingMap.containsKey(uri)) {
-                Object[] objects = mappingMap.get(uri);
-                Class clazz = (Class) objects[0];
-                Method method = (Method) objects[1];
-                Parameter[] parameters = (Parameter[]) objects[2];
 
-                Object[] methodParams = generateParams(parameters, params.getParams());
+            if (ControllerInitializer.MAPPING_MAP.containsKey(uri)) {
+                ExecuteTarget target = ControllerInitializer.MAPPING_MAP.get(uri);
 
-                Object invoke = method.invoke(SpringContextHolder.getBean(clazz), methodParams);
+                Object[] methodParams = generateParams(target.getParameters(), params.getParams());
+
+                Object invoke = target.getMethod().invoke(
+                        SpringContextHolder.getBean(target.getClazz()), methodParams
+                );
 
                 if (invoke != null && !(invoke instanceof String)) {
                     String data = new Gson().toJson(invoke);
@@ -78,9 +78,9 @@ public class HttpServerDispatchHandler {
                     throw new RuntimeException("annotation @Param does not exist!");
                 }
                 String name = pName.value();
-                List<Object> objects = params.get(name);
-                if (objects != null && objects.size() > 0) {
-                    paramList.add((clazz.equals(String.class) || clazz.isPrimitive()) ? objects.get(0) : objects.toArray());
+                List<Object> requestParams = params.get(name);
+                if (requestParams != null && requestParams.size() > 0) {
+                    paramList.add((clazz.equals(String.class) || clazz.isPrimitive()) ? requestParams.get(0) : requestParams.toArray());
                 }
             } else {
                 // 2. java bean
@@ -90,12 +90,12 @@ public class HttpServerDispatchHandler {
                 for (Field field : fields) {
                     String fieldName = field.getName();
                     Class<?> fieldType = field.getType();
-                    List<Object> objects = params.get(fieldName);
-                    if (objects != null && objects.size() > 0) {
+                    List<Object> requestParams = params.get(fieldName);
+                    if (requestParams != null && requestParams.size() > 0) {
                         String setMethodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
 
                         Method setMethod = clazz.getDeclaredMethod(setMethodName, fieldType);
-                        Object value = objects.get(0);
+                        Object value = requestParams.get(0);
 
                         if (fieldType.isAssignableFrom(String.class) && !(value instanceof String)) {
                             String stringValue = String.valueOf(value);
@@ -117,7 +117,9 @@ public class HttpServerDispatchHandler {
                                 || fieldType.isAssignableFrom(Float.class)
                                 || fieldType.isAssignableFrom(Double.class)) {
                             // 数字类型不一致，需要强制转型
-                            value = getNumberValue(objects.get(0), fieldType);
+                            value = getNumberValue(requestParams.get(0), fieldType);
+                        } else {
+                            // TODO 非基本类型
                         }
 
                         setMethod.invoke(o, value);

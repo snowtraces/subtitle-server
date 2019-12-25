@@ -14,11 +14,10 @@ public class HttpServer {
     @Value("${netty.http.port}")
     private Integer port;
 
-    public void start() throws Exception{
+    public void start() throws Exception {
         BaseInitializer initializer = new BaseInitializer();
-        initializer
-                .addController(RestController.class)
-                .init();
+        initializer.addController(RestController.class);
+        initializer.init();
 
         NioEventLoopGroup bossGroup = new NioEventLoopGroup();
         NioEventLoopGroup workerGroup = new NioEventLoopGroup();

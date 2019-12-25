@@ -8,11 +8,11 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 
-public class HttpServerChannelInitializer extends ChannelInitializer<SocketChannel> {
+class HttpServerChannelInitializer extends ChannelInitializer<SocketChannel> {
     static final EventExecutorGroup EVENT_EXECUTORS = new DefaultEventExecutorGroup(16);
 
 @Override
-    protected void initChannel(SocketChannel ch) throws Exception {
+    protected void initChannel(SocketChannel ch) {
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(EVENT_EXECUTORS, new HttpUploadHandler());

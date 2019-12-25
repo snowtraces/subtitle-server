@@ -56,7 +56,7 @@ public class RestController {
     /**
      * 根据id查询
      */
-    @RestMapping("/api/movie")
+    @RestMapping("/api/movie/${id}")
     public Object getMovie(@Param("id")String id) {
         return subjectService.getById(id);
     }

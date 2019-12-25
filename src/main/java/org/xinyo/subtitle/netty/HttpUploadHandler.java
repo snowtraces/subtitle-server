@@ -28,13 +28,12 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
     private static final HttpDataFactory FACTORY = new DefaultHttpDataFactory(true);
     private static final String URI = "/api/fileUpload";
     private HttpPostRequestDecoder httpDecoder;
-    private HttpRequest request;
 
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final HttpObject httpObject)
             throws Exception {
         if (httpObject instanceof HttpRequest) {
-            request = (HttpRequest) httpObject;
+            HttpRequest request = (HttpRequest) httpObject;
             if (request.uri().startsWith(URI) && request.method().equals(HttpMethod.POST)) {
                 httpDecoder = new HttpPostRequestDecoder(FACTORY, request);
                 httpDecoder.setDiscardThreshold(0);
@@ -61,12 +60,12 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     }
 
-    private void writeChunk(ChannelHandlerContext ctx) throws IOException {
+    private void writeChunk(ChannelHandlerContext ctx) {
         while (httpDecoder.hasNext()) {
             InterfaceHttpData data = httpDecoder.next();
             if (data != null && HttpDataType.FileUpload.equals(data.getHttpDataType())) {
                 final FileUpload fileUpload = (FileUpload) data;
-                try(FileInputStream fileInputStream = new FileInputStream(fileUpload.getFile());) {
+                try(FileInputStream fileInputStream = new FileInputStream(fileUpload.getFile())) {
                     List<SRTSubtitleUnit> subtitleUnitList = SubtitleParseUtils.read(fileInputStream);
                     HttpUtils.response(ctx, subtitleUnitList, HttpResponseStatus.OK);
                 } catch (Exception e) {
@@ -80,7 +79,7 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        log.warn("{}", cause);
+        log.warn("请求异常：", cause);
         ctx.channel().close();
     }
 
