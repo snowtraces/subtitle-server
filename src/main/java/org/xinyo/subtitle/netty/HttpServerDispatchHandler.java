@@ -13,7 +13,6 @@ import org.xinyo.subtitle.netty.util.RequestParam;
 import org.xinyo.subtitle.util.SpringContextHolder;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +61,20 @@ public class HttpServerDispatchHandler {
         return result;
     }
 
+    private static String getParameterName(Parameter parameter) {
+        Param pName = parameter.getAnnotation(Param.class);
+        if (pName == null) {
+            if (parameter.isNamePresent()) {
+                return parameter.getName();
+            } else {
+                // 默认情况下拿不到参数名称，只能通过注解解决
+                throw new RuntimeException("annotation @Param does not exist!");
+            }
+
+        }
+        return pName.value();
+    }
+
     private static Object[] generateParams(Parameter[] parameters, Map<String, List<Object>> params) throws Exception {
         if (parameters == null || parameters.length == 0) {
             return null;
@@ -72,12 +85,7 @@ public class HttpServerDispatchHandler {
             Class<?> clazz = p.getType();
             if (clazz.equals(String.class) || clazz.isPrimitive() || clazz.isArray()) {
                 // 1. primitive / array
-                Param pName = p.getAnnotation(Param.class);
-                if (pName == null) {
-                    // 默认情况下拿不到参数名称，只能通过注解解决
-                    throw new RuntimeException("annotation @Param does not exist!");
-                }
-                String name = pName.value();
+                String name = getParameterName(p);
                 List<Object> requestParams = params.get(name);
                 if (requestParams != null && requestParams.size() > 0) {
                     paramList.add((clazz.equals(String.class) || clazz.isPrimitive()) ? requestParams.get(0) : requestParams.toArray());
@@ -92,9 +100,6 @@ public class HttpServerDispatchHandler {
                     Class<?> fieldType = field.getType();
                     List<Object> requestParams = params.get(fieldName);
                     if (requestParams != null && requestParams.size() > 0) {
-                        String setMethodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-
-                        Method setMethod = clazz.getDeclaredMethod(setMethodName, fieldType);
                         Object value = requestParams.get(0);
 
                         if (fieldType.isAssignableFrom(String.class) && !(value instanceof String)) {
@@ -122,7 +127,8 @@ public class HttpServerDispatchHandler {
                             // TODO 非基本类型
                         }
 
-                        setMethod.invoke(o, value);
+                        field.setAccessible(true);
+                        field.set(o, value);
                     }
                 }
 

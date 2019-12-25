@@ -32,7 +32,7 @@ public class HttpUtils {
         // 1. url 参数
         String uri = request.uri();
         QueryStringDecoder stringDecoder = new QueryStringDecoder(uri);
-        String path = stringDecoder.rawPath();
+        String path = stringDecoder.path();
         if (path.endsWith(PATH_END_BUT_USELESS)) {
             path = path.substring(0, path.length() - 1);
         }
