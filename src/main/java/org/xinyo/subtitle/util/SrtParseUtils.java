@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 /**
  * @author CHENG
  */
-public class SubtitleParseUtils {
+public class SrtParseUtils {
     private static List<String> subtitleSuffix = Arrays.asList("srt", "ass", "ssa");
 
     private static String numberRegex = "^\\d+$";

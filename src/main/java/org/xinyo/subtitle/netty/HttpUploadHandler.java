@@ -9,10 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.xinyo.subtitle.entity.SRTSubtitleUnit;
 import org.xinyo.subtitle.netty.util.HttpUtils;
-import org.xinyo.subtitle.util.SubtitleParseUtils;
+import org.xinyo.subtitle.util.SrtParseUtils;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.List;
 
 import static io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
@@ -66,7 +65,7 @@ public class HttpUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
             if (data != null && HttpDataType.FileUpload.equals(data.getHttpDataType())) {
                 final FileUpload fileUpload = (FileUpload) data;
                 try(FileInputStream fileInputStream = new FileInputStream(fileUpload.getFile())) {
-                    List<SRTSubtitleUnit> subtitleUnitList = SubtitleParseUtils.read(fileInputStream);
+                    List<SRTSubtitleUnit> subtitleUnitList = SrtParseUtils.read(fileInputStream);
                     HttpUtils.response(ctx, subtitleUnitList, HttpResponseStatus.OK);
                 } catch (Exception e) {
                     e.printStackTrace();
