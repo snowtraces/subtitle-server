@@ -16,4 +16,9 @@ public class UpdateLogServiceImpl extends ServiceImpl<UpdataLogMapper, UpdateLog
     public UpdateLog getBySubjectId(String id) {
         return super.getById(id);
     }
+
+    @Override
+    public void emptyPosterUpdateTime(String subjectId) {
+        baseMapper.emptyPosterUpdateTime(subjectId);
+    }
 }

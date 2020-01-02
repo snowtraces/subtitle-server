@@ -6,4 +6,6 @@ public interface UpdateLogService {
     void doLog(UpdateLog log);
 
     UpdateLog getBySubjectId(String id);
+
+    void emptyPosterUpdateTime(String id);
 }

@@ -2,6 +2,7 @@ package org.xinyo.subtitle.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,7 @@ import org.xinyo.subtitle.mapper.SubjectMapper;
 import org.xinyo.subtitle.service.SubjectService;
 import org.xinyo.subtitle.service.SubtitleLogService;
 import org.xinyo.subtitle.service.SubtitleService;
+import org.xinyo.subtitle.service.UpdateLogService;
 import org.xinyo.subtitle.task.SubtitleSpiderThread;
 import org.xinyo.subtitle.task.SubtitleSpiderThreadPool;
 
@@ -23,6 +25,8 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
     private SubtitleLogService subtitleLogService;
     @Autowired
     private SubtitleService subtitleService;
+    @Autowired
+    private UpdateLogService updateLogService;
 
     @Override
     public Subject getById(String id) {
@@ -66,13 +70,28 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean save(List<Subject> subjects) {
         if (subjects == null || subjects.size() == 0) {
             return true;
         }
 
-        return super.saveOrUpdateBatch(subjects);
+        subjects.forEach(subject -> {
+            String id = subject.getId();
+            Subject byId = super.getById(id);
+            if (byId == null) {
+                super.save(subject);
+            } else {
+                String imgId = byId.getImgId();
+                String newImgId = subject.getImgId();
+                if (!Strings.isNullOrEmpty(newImgId) && !newImgId.equals(imgId)) {
+                    updateLogService.emptyPosterUpdateTime(id);
+                }
+                super.updateById(subject);
+            }
+        });
+
+        return true;
     }
 
     @Override

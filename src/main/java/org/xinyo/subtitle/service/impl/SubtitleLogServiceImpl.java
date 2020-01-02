@@ -33,11 +33,7 @@ public class SubtitleLogServiceImpl extends ServiceImpl<SubtitleLogMapper, Subti
             return true;
         } else {
             LocalDateTime updateTime = list.get(0).getUpdateTime();
-            if (updateTime.isBefore(LocalDateTime.now().minusDays(7))) {
-                return true;
-            }
+            return updateTime.isBefore(LocalDateTime.now().minusDays(7));
         }
-
-        return false;
     }
 }
