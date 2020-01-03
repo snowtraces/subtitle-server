@@ -15,8 +15,6 @@ import lombok.experimental.Accessors;
  * @since 2020-01-03
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
 @TableName("auth_role_user")
 public class RoleUser implements Serializable {
 
