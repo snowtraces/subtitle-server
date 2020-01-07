@@ -99,6 +99,8 @@ public class RequestUtils {
                 }
 
                 ByteStreams.copy(in, outputStream);
+
+                log.info(">>>文件保存成功：url: {}, file: {}", url, savePath);
                 outputStream.close();
             }
 

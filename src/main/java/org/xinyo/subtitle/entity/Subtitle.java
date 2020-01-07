@@ -55,6 +55,7 @@ public class Subtitle {
             case("听译版本"):
                 return 3;
             case("机翻字幕"):
+            case("机翻版本"):
                 return 4;
         }
         return null;

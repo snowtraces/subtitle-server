@@ -6,6 +6,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.xinyo.subtitle.controller.AuthController;
 import org.xinyo.subtitle.controller.RestController;
 import org.xinyo.subtitle.netty.init.BaseInitializer;
 
@@ -17,6 +18,7 @@ public class HttpServer {
     public void start() throws Exception {
         BaseInitializer initializer = new BaseInitializer();
         initializer.addController(RestController.class);
+        initializer.addController(AuthController.class);
         initializer.init();
 
         NioEventLoopGroup bossGroup = new NioEventLoopGroup();

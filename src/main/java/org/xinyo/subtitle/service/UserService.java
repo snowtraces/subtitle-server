@@ -2,6 +2,7 @@ package org.xinyo.subtitle.service;
 
 import org.xinyo.subtitle.entity.auth.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.xinyo.subtitle.entity.vo.Resp;
 
 /**
  * <p>
@@ -13,4 +14,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface UserService extends IService<User> {
 
+    User getUser(User user);
+
+    Resp addUser(User user);
 }
