@@ -16,7 +16,19 @@ public class RequestParam {
     private Map<String, List<Object>> params = new HashMap<>();
 
     public void pushParams(Map<String, List<Object>> params) {
-        this.params.putAll(params);
+        if (params == null) {
+            return;
+        }
+
+        params.forEach((key, value) -> {
+            if (this.params.containsKey(key)) {
+                List<Object> existValues = this.params.get(key);
+                existValues.addAll(value);
+                this.params.put(key, existValues);
+            } else {
+                this.params.put(key, value);
+            }
+        });
     }
 
     public void pushCookies(Map<String, List<Object>> cookies) {

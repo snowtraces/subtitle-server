@@ -6,6 +6,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
@@ -92,7 +94,16 @@ public class HttpUtils {
         requestParam.pushParams(params);
 
         // 5. cookie参数
-        // TODO
+        String cookieString = request.headers().get(HttpHeaderNames.COOKIE);
+        if (cookieString != null) {
+            Map<String, List<Object>> cookieMap = new HashMap<>();
+            Set<Cookie> cookieSet = ServerCookieDecoder.STRICT.decode(cookieString);
+            cookieSet.forEach(cookie -> cookieMap.put(cookie.name(), Collections.singletonList(cookie.value())));
+            requestParam.setCookies(cookieMap);
+
+            // merge cookie to params
+//            requestParam.pushParams(cookieMap);
+        }
 
         return requestParam;
     }

@@ -28,7 +28,7 @@ mybatis-plus:
 
 netty:
   http:
-    port: 9090
+    port: 19090
 custom:
   basePath: C:/data/subtitle/
   rarPath: C:/Users/CHENG/CODE/Projects/subtitle_server/src/main/resources/rar/win/UnRAR.exe

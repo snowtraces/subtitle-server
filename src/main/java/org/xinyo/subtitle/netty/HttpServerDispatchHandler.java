@@ -30,16 +30,18 @@ public class HttpServerDispatchHandler {
         Result result = new Result();
 
         RequestParam params = HttpUtils.extractRequestParams(request);
+        String uri = params.getUri();
+
+        // TODO 根据token鉴权
 
         log.info(params.toString());
 
         try {
-            String uri = params.getUri();
 
             if (ControllerInitializer.MAPPING_MAP.containsKey(uri)) {
                 ExecuteTarget target = ControllerInitializer.MAPPING_MAP.get(uri);
 
-                Object[] methodParams = generateParams(target.getParameters(), params.getParams());
+                Object[] methodParams = generateParams(target.getParameters(), params.getParams(), params.getCookies());
 
                 Object invoke = target.getMethod().invoke(
                         SpringContextHolder.getBean(target.getClazz()), methodParams
@@ -75,7 +77,7 @@ public class HttpServerDispatchHandler {
         return pName.value();
     }
 
-    private static Object[] generateParams(Parameter[] parameters, Map<String, List<Object>> params) throws Exception {
+    private static Object[] generateParams(Parameter[] parameters, Map<String, List<Object>> params, Map<String, List<Object>> cookies) throws Exception {
         if (parameters == null || parameters.length == 0) {
             return null;
         }
@@ -87,8 +89,13 @@ public class HttpServerDispatchHandler {
                 // 1. primitive / array
                 String name = getParameterName(p);
                 List<Object> requestParams = params.get(name);
+                if (requestParams == null || requestParams.size() == 0) {
+                    requestParams = cookies.get(name);
+                }
                 if (requestParams != null && requestParams.size() > 0) {
                     paramList.add((clazz.equals(String.class) || clazz.isPrimitive()) ? requestParams.get(0) : requestParams.toArray());
+                } else {
+                    paramList.add(null);
                 }
             } else {
                 // 2. java bean
@@ -99,6 +106,9 @@ public class HttpServerDispatchHandler {
                     String fieldName = field.getName();
                     Class<?> fieldType = field.getType();
                     List<Object> requestParams = params.get(fieldName);
+                    if (requestParams == null || requestParams.size() == 0) {
+                        requestParams = cookies.get(fieldName);
+                    }
                     if (requestParams != null && requestParams.size() > 0) {
                         Object value = requestParams.get(0);
 
@@ -148,14 +158,18 @@ public class HttpServerDispatchHandler {
 
         Object numberValue = null;
         String stringValue = String.valueOf(o);
+        int endIndex = stringValue.indexOf(".");
+        if (endIndex == -1) {
+            endIndex = stringValue.length();
+        }
         if (fieldType.isAssignableFrom(Short.class)) {
-            stringValue = stringValue.substring(0, stringValue.indexOf("."));
+            stringValue = stringValue.substring(0, endIndex);
             numberValue = Short.parseShort(stringValue);
         } else if (fieldType.isAssignableFrom(Integer.class)) {
-            stringValue = stringValue.substring(0, stringValue.indexOf("."));
+            stringValue = stringValue.substring(0, endIndex);
             numberValue = Integer.parseInt(stringValue);
         } else if (fieldType.isAssignableFrom(Long.class)) {
-            stringValue = stringValue.substring(0, stringValue.indexOf("."));
+            stringValue = stringValue.substring(0, endIndex);
             numberValue = Long.parseLong(stringValue);
         } else if (fieldType.isAssignableFrom(Float.class)) {
             numberValue = Float.parseFloat(stringValue);

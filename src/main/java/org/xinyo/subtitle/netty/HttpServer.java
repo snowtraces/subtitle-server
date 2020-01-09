@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.xinyo.subtitle.controller.AuthController;
 import org.xinyo.subtitle.controller.RestController;
+import org.xinyo.subtitle.controller.UserController;
 import org.xinyo.subtitle.netty.init.BaseInitializer;
 
 @Component
@@ -19,6 +20,7 @@ public class HttpServer {
         BaseInitializer initializer = new BaseInitializer();
         initializer.addController(RestController.class);
         initializer.addController(AuthController.class);
+        initializer.addController(UserController.class);
         initializer.init();
 
         NioEventLoopGroup bossGroup = new NioEventLoopGroup();

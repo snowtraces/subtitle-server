@@ -7,6 +7,9 @@ import org.xinyo.subtitle.entity.auth.User;
 import org.xinyo.subtitle.entity.vo.Resp;
 import org.xinyo.subtitle.netty.annotation.RestMapping;
 import org.xinyo.subtitle.service.UserService;
+import org.xinyo.subtitle.util.TokenCache;
+
+import java.util.UUID;
 
 /**
  * @author CHENG
@@ -31,8 +34,24 @@ public class AuthController {
         if (existUser == null) {
             return Resp.failure("账号或密码错误");
         } else {
-            return Resp.success("", "登录成功");
+            String token = UUID.randomUUID().toString();
+            TokenCache.setCache(token, existUser);
+            return Resp.success(token, "登录成功");
         }
+    }
+
+    @RestMapping("/api/autoLogin")
+    public Object autoLogin(String token) {
+        if (Strings.isNullOrEmpty(token)) {
+            return Resp.failure("");
+        }
+
+        User cacheUser = TokenCache.getCache(token);
+        if (cacheUser != null) {
+            return Resp.success(token, "登录成功");
+        }
+
+        return Resp.failure("");
     }
 
     @RestMapping("/api/signUp")

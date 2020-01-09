@@ -1,9 +1,13 @@
 package org.xinyo.subtitle.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.base.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.xinyo.subtitle.entity.PageParams;
 import org.xinyo.subtitle.entity.auth.User;
 import org.xinyo.subtitle.entity.vo.Resp;
 import org.xinyo.subtitle.mapper.UserMapper;
@@ -48,6 +52,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         super.save(user);
         return Resp.success(null, "注册成功，请前去登录");
+    }
+
+    @Override
+    public Resp list4Page(User user, PageParams pageParams) {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        String filter = pageParams.getFilter();
+        if (!Strings.isNullOrEmpty(filter)) {
+            wrapper.like("name", filter);
+        }
+
+        IPage<User> page = super.page(new Page<>(pageParams.getPageIndex(), pageParams.getPageSize()), wrapper);
+
+        return Resp.forPage(page.getTotal(), page.getRecords());
+    }
+
+    @Override
+    public Resp changeStatus(User user) {
+        super.updateById(user);
+
+        return Resp.success(null);
     }
 
     private boolean checkNameAvailable(String name) {

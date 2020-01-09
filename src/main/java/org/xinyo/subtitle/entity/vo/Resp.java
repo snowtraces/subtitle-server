@@ -2,6 +2,8 @@ package org.xinyo.subtitle.entity.vo;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * http 响应包装类
  *
@@ -12,6 +14,8 @@ public class Resp {
     private int code;
     private String msg;
     private Object data;
+    private List<?> rows;
+    private long total;
 
     public static Resp success(Object data) {
         return success(data, null);
@@ -34,5 +38,13 @@ public class Resp {
         return resp;
     }
 
+    public static Resp forPage(long total, List<?> rows) {
+        Resp resp = new Resp();
+        resp.code = 100;
+        resp.rows = rows;
+        resp.total = total;
+
+        return resp;
+    }
 
 }
