@@ -1,10 +1,10 @@
 package org.xinyo.subtitle.entity.auth;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
+
+import java.io.Serializable;
 
 /**
  * <p>
@@ -34,6 +34,9 @@ public class User implements Serializable {
      * 0-正常
      */
     private Integer status;
+
+    @TableField(exist = false)
+    private String token;
 
 
 }

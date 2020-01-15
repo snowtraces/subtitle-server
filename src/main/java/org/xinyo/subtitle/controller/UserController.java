@@ -24,7 +24,7 @@ public class UserController {
     }
 
     @RestMapping("/api/user/changeStatus")
-    public Object login(User user) {
+    public Object changeStatus(User user) {
         return userService.changeStatus(user);
     }
 

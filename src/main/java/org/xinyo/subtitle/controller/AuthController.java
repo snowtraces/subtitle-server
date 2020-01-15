@@ -35,8 +35,9 @@ public class AuthController {
             return Resp.failure("账号或密码错误");
         } else {
             String token = UUID.randomUUID().toString();
+            existUser.setToken(token);
             TokenCache.setCache(token, existUser);
-            return Resp.success(token, "登录成功");
+            return Resp.success(existUser, "登录成功");
         }
     }
 
@@ -48,7 +49,7 @@ public class AuthController {
 
         User cacheUser = TokenCache.getCache(token);
         if (cacheUser != null) {
-            return Resp.success(token, "登录成功");
+            return Resp.success(cacheUser, "登录成功");
         }
 
         return Resp.failure("");
